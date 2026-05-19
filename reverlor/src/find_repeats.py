@@ -16,10 +16,9 @@ def find_repeats(args: FindArgs) -> str:
     _self_map_genome(args, raw_bed_fpath)
     _merge_repeats(raw_bed_fpath, merged_bed_fpath, args)
 
-    # TODO: uncomment
-    # if os.path.isfile(raw_bed):
-    #     os.remove(raw_bed)
-    # # end if
+    if os.path.isfile(raw_bed_fpath):
+        os.remove(raw_bed_fpath)
+    # end if
 
     sys.stderr.write('\n')
     sys.stderr.write('INFO: Completed!\n')
@@ -36,7 +35,10 @@ def _self_map_genome(args: FindArgs,
     cmd = [
         args.minimap2_fpath,
         '-c',
-        '-PD', '-k19', '-w19', '-m127',
+        '-PD',
+        f'-k{args.minimap_k}',
+        f'-w{args.minimap_w}',
+        f'-m{args.minimap_m}',
         args.fasta_fpath,
         args.fasta_fpath,
     ]
