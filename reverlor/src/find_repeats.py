@@ -32,13 +32,16 @@ def find_repeats(args: FindArgs) -> str:
 def _self_map_genome(args: FindArgs,
                      output_bed_fpath: str) -> None:
 
-    cmd = [
-        args.minimap2_fpath,
+    cmd = [args.minimap2_fpath]
+    if args.minimap_x is not None:
+        cmd += ['-x', args.minimap_x]
+    # end if
+    cmd += [
         '-c',
         '-PD',
-        f'-k{args.minimap_k}',
-        f'-w{args.minimap_w}',
-        f'-m{args.minimap_m}',
+        '-k', str(args.minimap_k),
+        '-w', str(args.minimap_w),
+        '-m', str(args.minimap_m),
         args.fasta_fpath,
         args.fasta_fpath,
     ]

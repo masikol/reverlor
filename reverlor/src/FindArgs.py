@@ -12,6 +12,7 @@ BEDTOOLS_DEFAULT_FPATH = 'bedtools'
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
 MINIMAP_M_DEFAULT = 127
+MINIMAP_X_CHOICES = ['map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20']
 
 
 # >>> Helper functions >>>
@@ -68,6 +69,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=MINIMAP_M_DEFAULT,
         help='minimap2 matching score (default: 127)'
+    )
+    parser.add_argument(
+        '--minimap-x',
+        type=str,
+        default=None,
+        choices=MINIMAP_X_CHOICES,
+        help='minimap2 preset (default: not passed)'
     )
 # end def
 
@@ -157,7 +165,8 @@ class FindArgs:
                  bedtools_fpath: Optional[str]=BEDTOOLS_DEFAULT_FPATH,
                  minimap_k: int=MINIMAP_K_DEFAULT,
                  minimap_w: int=MINIMAP_W_DEFAULT,
-                 minimap_m: int=MINIMAP_M_DEFAULT):
+                 minimap_m: int=MINIMAP_M_DEFAULT,
+                 minimap_x: Optional[str]=None):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
@@ -166,6 +175,7 @@ class FindArgs:
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
+        self.minimap_x: Optional[str] = minimap_x
     # end def
 
     @classmethod
@@ -188,6 +198,7 @@ class FindArgs:
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,
+            minimap_x=args.minimap_x,
         )
     # end def
 # end class
