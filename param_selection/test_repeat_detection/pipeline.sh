@@ -11,6 +11,7 @@ pipeline_data_dir="${pipeline_dir}/data"
 find_repeats_out_root="${pipeline_dir}/data/find_repeats_results"
 find_repeats_out_merged="${find_repeats_out_root}/merged.tsv"
 mock_repeats_file="${pipeline_data_dir}/mock_repeats.fasta"
+test_combinations_file="${pipeline_data_dir}/test_combintations.tsv"
 tmp_dir='/mnt/tmp_buff'
 
 
@@ -20,20 +21,22 @@ done
 
 cd "${pipeline_dir}"
 
-python3 extract_mock_repeats.py \
-    "${genome_fasta}" \
-    "${mock_repeats_file}"
+# python3 extract_mock_repeats.py \
+#     "${genome_fasta}" \
+#     "${mock_repeats_file}"
 
-python3 mutate_mock_repeats.py \
-    "${mock_repeats_file}" \
-    "${pipeline_data_dir}"
+# python3 mutate_mock_repeats.py \
+#     "${mock_repeats_file}" \
+#     "${pipeline_data_dir}"
 
-python3 insert_and_find_mock_repeats.py \
+python3 insert_mock_repeats.py \
     "${genome_fasta}" \
     "${mock_repeats_file}" \
     "${pipeline_data_dir}" \
+
+python3 find_mock_repeats.py \
+    "${pipeline_data_dir}" \
     "${reverlor_find_fpath}" \
-    "${tmp_dir}" \
     "${find_repeats_out_root}"
 
 python3 merge_find_results.py \

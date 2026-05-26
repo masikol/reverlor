@@ -36,12 +36,13 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
         '--quiet',
         'args',
         '--snp', rate_str,
-        '--insert', rate_str,
-        '--deletion', rate_str,
-        '--insertminlength', str(INDEL_MIN_LEN),
-        '--insertmaxlength', str(INDEL_MAX_LEN),
-        '--deletionminlength', str(INDEL_MIN_LEN),
-        '--deletionmaxlength', str(INDEL_MAX_LEN),
+        # TOOD: do I really need it?
+        # '--insert', rate_str,
+        # '--deletion', rate_str,
+        # '--insertminlength', str(INDEL_MIN_LEN),
+        # '--insertmaxlength', str(INDEL_MAX_LEN),
+        # '--deletionminlength', str(INDEL_MIN_LEN),
+        # '--deletionmaxlength', str(INDEL_MAX_LEN),
     ])
 
     returncode = os.system(cmd)
