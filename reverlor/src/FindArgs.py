@@ -12,7 +12,9 @@ BEDTOOLS_DEFAULT_FPATH = 'bedtools'
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
 MINIMAP_M_DEFAULT = 127
-MINIMAP_X_CHOICES = ['map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20']
+MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
+DEFAULT_MIN_REPAT_LEN = 200
+DEFAULT_MIN_REPEAT_INTERVAL = 100
 
 
 # >>> Helper functions >>>
@@ -31,13 +33,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--min-repeat-len',
         type=int,
-        default=200,
+        default=DEFAULT_MIN_REPAT_LEN,
         help='Minimum repeat length (default: 200)'
     )
     parser.add_argument(
         '--min-repeat-interval',
         type=int,
-        default=100,
+        default=DEFAULT_MIN_REPEAT_INTERVAL,
         help='Minimum interval between repeats (default: 100). If the interval is shorter, the repeats get merged.'
     )
     parser.add_argument(

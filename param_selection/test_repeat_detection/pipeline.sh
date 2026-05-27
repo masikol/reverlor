@@ -21,13 +21,13 @@ done
 
 cd "${pipeline_dir}"
 
-# python3 extract_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${mock_repeats_file}"
+python3 extract_mock_repeats.py \
+    "${genome_fasta}" \
+    "${mock_repeats_file}"
 
-# python3 mutate_mock_repeats.py \
-#     "${mock_repeats_file}" \
-#     "${pipeline_data_dir}"
+python3 mutate_mock_repeats.py \
+    "${mock_repeats_file}" \
+    "${pipeline_data_dir}"
 
 python3 insert_mock_repeats.py \
     "${genome_fasta}" \

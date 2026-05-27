@@ -2,6 +2,7 @@
 
 import os
 import sys
+import subprocess as sp
 
 import polars as pl
 
@@ -13,14 +14,21 @@ FIND_REPEATS_OUT_ROOT_PATH = os.path.abspath(sys.argv[3])
 
 
 def run_reverlor_find(input_fasta_fpath, out_dir_path):
-    cmd = ' '.join([
+    cmd = [
         'python3', REVERLOR_FIND_FPATH,
+        '--minimap-m', '65',
+        '--min-repeat-len', '127',
+        # '--min-repeat-interval', '127',
         input_fasta_fpath,
         out_dir_path,
-    ])
-    returncode = os.system(cmd)
-    if returncode != 0:
+    ]
+
+    pipe = sp.Popen(cmd, text=True, stdout=sp.PIPE, stderr=sp.PIPE)
+
+    _, stderr = pipe.communicate()
+    if pipe.returncode != 0:
         sys.stderr.write('Error running reverlor_find.py')
+        sys.stderr.write(stderr)
         sys.exit(1)
     # end if
 
@@ -61,6 +69,8 @@ for row in comb_df.to_dicts():
         row['repeat_id'],
         row['rate']
     )
+
+    print(row['repeat_id'], row['rate'])
 
     run_reverlor_find(input_fasta_fpath, out_dir_path)
 # end for

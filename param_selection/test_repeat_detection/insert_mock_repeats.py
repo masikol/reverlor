@@ -60,35 +60,57 @@ def insert_mock_repeat(chr_record, mock_repeat_seq_record):
     repeat_descr = mock_repeat_seq_record.description
     re_result = re.search(REPEAT_COORDS_RE, repeat_descr)
 
-    start_coord = int(re_result.group(1))
-    end_coord = int(re_result.group(2))
+    orig_start_coord_closed = int(re_result.group(1))
+    orig_end_coord_closed = int(re_result.group(2))
 
-    start_coord_broader = start_coord - SHOULDER_LEN
-    end_coord_broader = end_coord + SHOULDER_LEN
+    end_coord_broader = orig_end_coord_closed + SHOULDER_LEN
+    insert_start_coord_closed = random.randint(end_coord_broader, chr_len)
+    insert_end_coord_open = insert_start_coord_closed + len(mock_repeat_seq_record)
 
-    insert_start_coord = random.randint(0, chr_len)
-    # TODO: remove
-    # while insert_start_coord >= start_coord_broader and insert_start_coord <= end_coord_broader:
-    while insert_start_coord <= end_coord_broader:
-        insert_start_coord = random.randint(0, chr_len)
-    # end while
-
-    end_coord_orig_open = end_coord + 1
-    end_coord_inserted_open = insert_start_coord + len(mock_repeat_seq_record)
-
+    orig_end_coord_open = orig_end_coord_closed + 1
     true_repeat_coords = (
-        (chr_record.id, start_coord, end_coord_orig_open),
-        (chr_record.id, insert_start_coord, end_coord_inserted_open),
+        (chr_record.id, orig_start_coord_closed, orig_end_coord_open),
+        (chr_record.id, insert_start_coord_closed, insert_end_coord_open),
     )
 
     repeat_str = str(mock_repeat_seq_record.seq)
-    new_chr_str = chr_str[:insert_start_coord] + repeat_str + chr_str[insert_start_coord:]
+    end_coord_inserted_closed = insert_end_coord_open - 1
+    new_chr_str = chr_str[:insert_start_coord_closed] + repeat_str + chr_str[insert_start_coord_closed:]
+
+    new_chr_str = mask_all_but_repats(
+        new_chr_str,
+        orig_start_coord_closed,
+        orig_end_coord_closed,
+        insert_start_coord_closed,
+        end_coord_inserted_closed
+    )
+
     new_chr_record = SeqRecord(
         Seq(new_chr_str),
         id=chr_record.id
     )
 
     return new_chr_record, true_repeat_coords
+# end def
+
+def mask_all_but_repats(chr_str,
+                        orig_start_coord_closed,
+                        orig_end_coord_closed,
+                        insert_start_coord_closed,
+                        end_coord_inserted_closed):
+    new_chr_chars = list(chr_str)
+
+    for i in range(0, orig_start_coord_closed):
+        new_chr_chars[i] = 'n'
+    # end for
+    for i in range(orig_end_coord_closed+1, insert_start_coord_closed):
+        new_chr_chars[i] = 'n'
+    # end for
+    for i in range(end_coord_inserted_closed+1, len(new_chr_chars)):
+        new_chr_chars[i] = 'n'
+    # end for
+
+    return ''.join(new_chr_chars)
 # end def
 
 def make_curr_outdir_path(repeat_record, rate=None):

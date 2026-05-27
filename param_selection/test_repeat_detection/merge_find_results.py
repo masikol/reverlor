@@ -17,7 +17,7 @@ IN_GLOB = sorted(glob.glob(
 ))
 
 FIND_RESULT_DIR_NAME_RE = re.compile(
-    r'^default_mock_repeat_([1-9][0-9]*)_([0-9])[_]?(0\.[0-9]+)?$'
+    r'^default_mock_repeat_([1-9][0-9]*)_([0-9]+)[_]?(0\.[0-9]+)?$'
 )
 
 
