@@ -19,7 +19,7 @@ from mock_repeats_settings import RATE_FROM, \
 random.seed(RANDOM_SEED)
 
 REPEAT_COORDS_RE = re.compile(r'start=([1-9][0-9]*) end=([1-9][0-9]*)')
-SHOULDER_LEN = 100 # bp, around the original repeat
+SHOULDER_LEN = 200 # bp, around the original repeat
 
 
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
