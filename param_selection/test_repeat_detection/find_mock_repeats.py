@@ -6,19 +6,22 @@ import subprocess as sp
 
 import polars as pl
 
+from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH
+
 
 PIPELINE_DATA_DIRPATH = os.path.abspath(sys.argv[1])
 REVERLOR_FIND_FPATH = os.path.abspath(sys.argv[2])
 FIND_REPEATS_OUT_ROOT_PATH = os.path.abspath(sys.argv[3])
+FINDER = sys.argv[4]
 
 
-
-def run_reverlor_find(input_fasta_fpath, out_dir_path):
+def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
     cmd = [
         'python3', REVERLOR_FIND_FPATH,
+        '--finder', FINDER,
         '--minimap-m', '65',
         '--min-repeat-len', '127',
-        # '--min-repeat-interval', '127',
+        '--repeat-scout', REPEAT_SCOUT_DIR_PATH,
         input_fasta_fpath,
         out_dir_path,
     ]
@@ -72,7 +75,7 @@ for row in comb_df.to_dicts():
 
     print(row['repeat_id'], row['rate'])
 
-    run_reverlor_find(input_fasta_fpath, out_dir_path)
+    run_reverlor_find(input_fasta_fpath, FINDER, out_dir_path)
 # end for
 
 

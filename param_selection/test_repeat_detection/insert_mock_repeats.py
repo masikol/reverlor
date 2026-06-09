@@ -25,6 +25,7 @@ SHOULDER_LEN = 200 # bp, around the original repeat
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
 IN_MOCK_REPEATS_FILE = os.path.abspath(sys.argv[2])
 IN_PIPELINE_DATA_DIR = os.path.abspath(sys.argv[3])
+MASK_ALL_BUT_REPEATS: bool = sys.argv[4] == '1'
 
 
 
@@ -53,7 +54,9 @@ def make_chr_with_insert_base_name(mock_repeat_seq_record, rate=None):
 # end def
 
 
-def insert_mock_repeat(chr_record, mock_repeat_seq_record):
+def insert_mock_repeat(chr_record,
+                       mock_repeat_seq_record,
+                       mask_all_but_repeats=False):
     chr_len = len(chr_record)
     chr_str = str(chr_record.seq)
 
@@ -77,13 +80,15 @@ def insert_mock_repeat(chr_record, mock_repeat_seq_record):
     end_coord_inserted_closed = insert_end_coord_open - 1
     new_chr_str = chr_str[:insert_start_coord_closed] + repeat_str + chr_str[insert_start_coord_closed:]
 
-    new_chr_str = mask_all_but_repats(
-        new_chr_str,
-        orig_start_coord_closed,
-        orig_end_coord_closed,
-        insert_start_coord_closed,
-        end_coord_inserted_closed
-    )
+    if mask_all_but_repeats:
+        new_chr_str = mask_all_but_repats(
+            new_chr_str,
+            orig_start_coord_closed,
+            orig_end_coord_closed,
+            insert_start_coord_closed,
+            end_coord_inserted_closed
+        )
+    # end if
 
     new_chr_record = SeqRecord(
         Seq(new_chr_str),
@@ -190,7 +195,8 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
         for repeat_record in repeat_records:
             chr_record_with_insert, true_repeat_coords = insert_mock_repeat(
                 chr_record,
-                repeat_record
+                repeat_record,
+                MASK_ALL_BUT_REPEATS
             )
 
             chr_with_insert_fpath = os.path.join(

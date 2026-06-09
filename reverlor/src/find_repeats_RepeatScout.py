@@ -59,6 +59,7 @@ def _run_build_lmer_table(args: FindArgs, freq_fpath: str) -> None:
         args.build_lmer_table_fpath,
         '-sequence', args.fasta_fpath,
         '-freq', freq_fpath,
+        '-min', '2',
     ]
     build_lmer_table_proc = sp.run(
         build_lmer_table_cmd,
@@ -72,6 +73,7 @@ def _run_build_lmer_table(args: FindArgs, freq_fpath: str) -> None:
                 build_lmer_table_proc.returncode
             )
         )
+        sys.stderr.write('CMD: “{}”\n'.format(' '.join(build_lmer_table_cmd)))
         sys.stderr.write(build_lmer_table_proc.stderr)
         sys.exit(1)
     # end if
@@ -101,6 +103,7 @@ def _run_repeat_scout(args: FindArgs,
                 repeat_scout_proc.returncode
             )
         )
+        sys.stderr.write('CMD: {}\n'.format(' '.join(build_lmer_table_cmd)))
         sys.stderr.write(repeat_scout_proc.stderr)
         sys.exit(1)
     # end if
