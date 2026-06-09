@@ -15,6 +15,7 @@ MINIMAP_M_DEFAULT = 127
 MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
 DEFAULT_MIN_REPAT_LEN = 200
 DEFAULT_MIN_REPEAT_INTERVAL = 100
+FINDER_CHOICES = ('minimap2', 'repeatscout')
 
 
 # >>> Helper functions >>>
@@ -79,6 +80,19 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         choices=MINIMAP_X_CHOICES,
         help='minimap2 preset (default: not passed)'
     )
+    parser.add_argument(
+        '--finder',
+        type=str,
+        default='minimap2',
+        choices=FINDER_CHOICES,
+        help='Repeat finder to use (default: minimap2)'
+    )
+    parser.add_argument(
+        '--repeat-scout',
+        type=str,
+        default=None,
+        help='Path to RepeatScout directory containing build_lmer_table and RepeatScout binaries'
+    )
 # end def
 
 
@@ -113,7 +127,11 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.exit(1)
     # end if
 
-    _validate_minimap2(args.minimap2)
+    if args.finder == 'repeatscout':
+        _validate_repeat_scout(args.repeat_scout)
+    else:
+        _validate_minimap2(args.minimap2)
+    # end if
     _validate_bedtools(args.bedtools)
 # end def
 
@@ -133,6 +151,23 @@ def _validate_minimap2(executable_fpath: str) -> None:
         sys.stderr.write('{}\n'.format(err));
         sys.exit(1)
     # end if
+# end def
+
+def _validate_repeat_scout(repeat_scout_dir: Optional[str]) -> None:
+    if repeat_scout_dir is None:
+        return
+    # end if
+    if not os.path.isdir(repeat_scout_dir):
+        sys.stderr.write(f'Error: RepeatScout directory `{repeat_scout_dir}` does not exist\n')
+        sys.exit(1)
+    # end if
+    for name in ('build_lmer_table', 'RepeatScout'):
+        fpath = os.path.join(repeat_scout_dir, name)
+        if not os.path.isfile(fpath):
+            sys.stderr.write(f'Error: `{name}` not found in `{repeat_scout_dir}`\n')
+            sys.exit(1)
+        # end if
+    # end for
 # end def
 
 def _validate_bedtools(executable_fpath: str) -> None:
@@ -168,7 +203,9 @@ class FindArgs:
                  minimap_k: int=MINIMAP_K_DEFAULT,
                  minimap_w: int=MINIMAP_W_DEFAULT,
                  minimap_m: int=MINIMAP_M_DEFAULT,
-                 minimap_x: Optional[str]=None):
+                 minimap_x: Optional[str]=None,
+                 finder: str='minimap2',
+                 repeat_scout_dir: Optional[str]=None):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
@@ -178,6 +215,21 @@ class FindArgs:
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
         self.minimap_x: Optional[str] = minimap_x
+        self.finder: str = finder
+        self.repeat_scout_dir: Optional[str] = repeat_scout_dir
+        if repeat_scout_dir is not None:
+            self.build_lmer_table_fpath: str = os.path.join(
+                repeat_scout_dir,
+                'build_lmer_table'
+            )
+            self.repeat_scout_fpath: str = os.path.join(
+                repeat_scout_dir,
+                'RepeatScout'
+            )
+        else:
+            self.build_lmer_table_fpath: str = 'build_lmer_table'
+            self.repeat_scout_fpath: str = 'RepeatScout'
+        # end if
     # end def
 
     @classmethod
@@ -201,6 +253,8 @@ class FindArgs:
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,
             minimap_x=args.minimap_x,
+            finder=args.finder,
+            repeat_scout_dir=args.repeat_scout,
         )
     # end def
 # end class

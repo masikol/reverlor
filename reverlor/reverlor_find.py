@@ -31,14 +31,19 @@ if sys.version_info.major < 3:
 
 # >>> Import functions >>>
 from src.FindArgs import FindArgs
-from src.find_repeats import find_repeats
+from src.find_repeats import find_repeats as find_repeats_minimap2
+from src.find_repeats_RepeatScout import find_repeats as find_repeats_repeatscout
 # <<<
 
 # >>> Functions >>>
 
 def reverlor_find():
     args = FindArgs.parse_args()
-    repeats_bed = find_repeats(args)
+    if args.finder == 'repeatscout':
+        repeats_bed = find_repeats_repeatscout(args)
+    else:
+        repeats_bed = find_repeats_minimap2(args)
+    # end if
 # end def
 
 # <<<
