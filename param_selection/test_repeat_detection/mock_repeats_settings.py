@@ -1,6 +1,6 @@
 
 RATE_FROM = 0.01
-RATE_TO = 0.02
+RATE_TO = 0.05
 RATE_STEP = 0.01
 
 INDEL_MIN_LEN = 1
@@ -15,3 +15,5 @@ RANDOM_SEED = 25
 MAX_DETECT_ERROR_LED = 10 # bp
 
 REPEAT_SCOUT_DIR_PATH = '/mnt/data/Max/Soft/Repeat_Finders/RepeatScout-1.0.7'
+
+PHRAIDER_PATH = '/mnt/data/Max/Soft/Repeat_Finders/phRAIDER-master/phRAIDER/phRAIDER'

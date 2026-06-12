@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-FINDER='repeatscout' # choice
+# FINDER='repeatscout' # choice
+FINDER='phraider' # choice
 # FINDER='minimap2' # choice
 
 MASK_ALL_BUT_REPEATS=0 # choice
@@ -29,22 +30,22 @@ done
 
 cd "${pipeline_dir}"
 
-# echo "$(date) -- Running extract_mock_repeats.py"
-# python3 extract_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${mock_repeats_file}"
+echo "$(date) -- Running extract_mock_repeats.py"
+python3 extract_mock_repeats.py \
+    "${genome_fasta}" \
+    "${mock_repeats_file}"
 
-# echo "$(date) -- Running mutate_mock_repeats.py"
-# python3 mutate_mock_repeats.py \
-#     "${mock_repeats_file}" \
-#     "${pipeline_workdir}"
+echo "$(date) -- Running mutate_mock_repeats.py"
+python3 mutate_mock_repeats.py \
+    "${mock_repeats_file}" \
+    "${pipeline_workdir}"
 
-# echo "$(date) -- Running insert_mock_repeats.py"
-# python3 insert_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${mock_repeats_file}" \
-#     "${pipeline_workdir}" \
-#     "${MASK_ALL_BUT_REPEATS}"
+echo "$(date) -- Running insert_mock_repeats.py"
+python3 insert_mock_repeats.py \
+    "${genome_fasta}" \
+    "${mock_repeats_file}" \
+    "${pipeline_workdir}" \
+    "${MASK_ALL_BUT_REPEATS}"
 
 echo "$(date) -- Running find_mock_repeats.py"
 python3 find_mock_repeats_parallel.py \

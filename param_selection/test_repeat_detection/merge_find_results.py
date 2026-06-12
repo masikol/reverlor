@@ -33,6 +33,7 @@ with open(out_fpath, 'wt') as out_handle:
             'value_type',
             'start_coord',
             'end_coord',
+            'strand',
         ]))
     )
 
@@ -57,11 +58,19 @@ with open(out_fpath, 'wt') as out_handle:
         )
 
         for bed_fpath, value_type in out_zip:
+
             with open(bed_fpath, 'rt') as in_handle:
                 lines = in_handle.readlines()
             # end def
+
             for line in lines:
                 bed_values = line.strip().split('\t')
+
+                strand = '.'
+                if len(bed_values) > 4:
+                    strand = bed_values[4]
+                # end if
+
                 out_handle.write('{}\n'.format(sep.join([
                     repeat_len,
                     repeat_idx,
@@ -69,6 +78,7 @@ with open(out_fpath, 'wt') as out_handle:
                     value_type,
                     bed_values[1],
                     bed_values[2],
+                    strand,
                 ])))
             # end for
         # end for

@@ -92,10 +92,16 @@ def insert_mock_repeat(chr_record,
 
     new_chr_record = SeqRecord(
         Seq(new_chr_str),
-        id=chr_record.id
+        id=chr_record.id,
+        description=''
     )
 
-    return new_chr_record, true_repeat_coords
+    strand = '+'
+    if 'strand=-' in repeat_descr:
+        strand = '-'
+    # end if
+
+    return new_chr_record, true_repeat_coords, strand
 # end def
 
 def mask_all_but_repats(chr_str,
@@ -131,16 +137,17 @@ def make_curr_outdir_path(repeat_record, rate=None):
     )
 # end def
 
-def write_true_coords(true_repeat_coords, true_repeats_bed_fpath):
+def write_true_coords(true_repeat_coords, strand, true_repeats_bed_fpath):
+    sep ='\t'
     with open(true_repeats_bed_fpath, 'wt') as out_handle:
         for chrom, start, end in true_repeat_coords:
-            out_handle.write(
-                '{}\t{}\t{}\n'.format(
-                    chrom,
-                    start,
-                    end
-                )
-            )
+            out_handle.write('{}\n'.format(sep.join([
+                chrom,
+                str(start),
+                str(end),
+                '.',
+                strand,
+            ])))
         # end for
     # end with
 # end def
@@ -193,7 +200,7 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
         )
         
         for repeat_record in repeat_records:
-            chr_record_with_insert, true_repeat_coords = insert_mock_repeat(
+            chr_record_with_insert, true_repeat_coords, strand = insert_mock_repeat(
                 chr_record,
                 repeat_record,
                 MASK_ALL_BUT_REPEATS
@@ -232,7 +239,7 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
                 curr_out_dir_path,
                 os.path.basename(pred_repeats_bed_fpath).replace('.bed', '.true.bed')
             )
-            write_true_coords(true_repeat_coords, true_repeats_bed_fpath)
+            write_true_coords(true_repeat_coords, strand, true_repeats_bed_fpath)
 
             rate_str = '0.00'
             if rate is not None:
