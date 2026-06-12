@@ -33,6 +33,7 @@ if sys.version_info.major < 3:
 from src.FindArgs import FindArgs
 from src.find_repeats import find_repeats as find_repeats_minimap2
 from src.find_repeats_RepeatScout import find_repeats as find_repeats_repeatscout
+from src.find_repeats_phRAIDER import find_repeats as find_repeats_phraider
 # <<<
 
 # >>> Functions >>>
@@ -41,6 +42,8 @@ def reverlor_find():
     args = FindArgs.parse_args()
     if args.finder == 'repeatscout':
         repeats_bed = find_repeats_repeatscout(args)
+    elif args.finder == 'phraider':
+        repeats_bed = find_repeats_phraider(args)
     else:
         repeats_bed = find_repeats_minimap2(args)
     # end if

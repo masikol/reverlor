@@ -15,7 +15,7 @@ MINIMAP_M_DEFAULT = 127
 MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
 DEFAULT_MIN_REPAT_LEN = 200
 DEFAULT_MIN_REPEAT_INTERVAL = 100
-FINDER_CHOICES = ('minimap2', 'repeatscout')
+FINDER_CHOICES = ('minimap2', 'repeatscout', 'phraider')
 
 
 # >>> Helper functions >>>
@@ -93,6 +93,12 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         default=None,
         help='Path to RepeatScout directory containing build_lmer_table and RepeatScout binaries'
     )
+    parser.add_argument(
+        '--phraider',
+        type=str,
+        default=None,
+        help='Path to phRAIDER executable'
+    )
 # end def
 
 
@@ -129,6 +135,8 @@ def _validate_args(args: argparse.Namespace) -> None:
 
     if args.finder == 'repeatscout':
         _validate_repeat_scout(args.repeat_scout)
+    elif args.finder == 'phraider':
+        _validate_phraider(args.phraider)
     else:
         _validate_minimap2(args.minimap2)
     # end if
@@ -148,7 +156,7 @@ def _validate_minimap2(executable_fpath: str) -> None:
             'Error: cannot test minimap2 executable: `{}`\n'.format(executable_fpath)
         )
         sys.stderr.write('Error: please specify executable with --minimap2 option\n')
-        sys.stderr.write('{}\n'.format(err));
+        sys.stderr.write('{}\n'.format(err))
         sys.exit(1)
     # end if
 # end def
@@ -170,6 +178,20 @@ def _validate_repeat_scout(repeat_scout_dir: Optional[str]) -> None:
     # end for
 # end def
 
+def _validate_phraider(phraider_fpath: Optional[str]) -> None:
+    if phraider_fpath is None:
+        return
+    # end if
+    if not os.path.isfile(phraider_fpath):
+        sys.stderr.write(f'Error: phRAIDER executable `{phraider_fpath}` does not exist\n')
+        sys.exit(1)
+    # end if
+    if not os.access(phraider_fpath, os.X_OK):
+        sys.stderr.write(f'Error: phRAIDER executable `{phraider_fpath}` is not executable\n')
+        sys.exit(1)
+    # end if
+# end def
+
 def _validate_bedtools(executable_fpath: str) -> None:
     cmd = [
         executable_fpath,
@@ -183,7 +205,7 @@ def _validate_bedtools(executable_fpath: str) -> None:
             'Error: cannot test minimap2 executable: `{}`\n'.format(executable_fpath)
         )
         sys.stderr.write('Error: please specify executable with --bedtools option\n')
-        sys.stderr.write('{}\n'.format(err));
+        sys.stderr.write('{}\n'.format(err))
         sys.exit(1)
     # end if
 # end def
@@ -205,7 +227,8 @@ class FindArgs:
                  minimap_m: int=MINIMAP_M_DEFAULT,
                  minimap_x: Optional[str]=None,
                  finder: str='minimap2',
-                 repeat_scout_dir: Optional[str]=None):
+                 repeat_scout_dir: Optional[str]=None,
+                 phraider_fpath: Optional[str]=None):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
@@ -217,6 +240,7 @@ class FindArgs:
         self.minimap_x: Optional[str] = minimap_x
         self.finder: str = finder
         self.repeat_scout_dir: Optional[str] = repeat_scout_dir
+        self.phraider_fpath: str = phraider_fpath
         if repeat_scout_dir is not None:
             self.build_lmer_table_fpath: str = os.path.join(
                 repeat_scout_dir,
@@ -255,6 +279,7 @@ class FindArgs:
             minimap_x=args.minimap_x,
             finder=args.finder,
             repeat_scout_dir=args.repeat_scout,
+            phraider_fpath=args.phraider,
         )
     # end def
 # end class

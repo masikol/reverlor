@@ -5,6 +5,7 @@ import sys
 import subprocess as sp
 from .FindArgs import FindArgs
 from .bed_lib import merge_features
+from .util import rm_files_if_exist
 
 
 def find_repeats(args: FindArgs) -> str:
@@ -19,7 +20,7 @@ def find_repeats(args: FindArgs) -> str:
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
-    _rm_tmp_files(raw_bed_fpath)
+    rm_files_if_exist(raw_bed_fpath)
 
     sys.stderr.write('\n')
     sys.stderr.write('INFO: Completed!\n')
@@ -45,13 +46,13 @@ def _find_repeats_repeat_scout(args: FindArgs,
     _run_repeat_scout(args, freq_fpath, fasta_out_fpath, range_fpath)
 
     # clean up temp files
-    _rm_tmp_files(freq_fpath, fasta_out_fpath)
+    rm_files_if_exist(freq_fpath, fasta_out_fpath)
 
     # Step 3: Convert .range file to a BED file
     _range_to_bed(range_fpath, output_bed_fpath)
 
     # clean up temp files
-    _rm_tmp_files(range_fpath)
+    rm_files_if_exist(range_fpath)
 # end def
 
 def _run_build_lmer_table(args: FindArgs, freq_fpath: str) -> None:
@@ -103,7 +104,7 @@ def _run_repeat_scout(args: FindArgs,
                 repeat_scout_proc.returncode
             )
         )
-        sys.stderr.write('CMD: {}\n'.format(' '.join(build_lmer_table_cmd)))
+        sys.stderr.write('CMD: {}\n'.format(' '.join(repeat_scout_cmd)))
         sys.stderr.write(repeat_scout_proc.stderr)
         sys.exit(1)
     # end if
@@ -150,18 +151,4 @@ def _range_to_bed(range_fpath: str,
             ])))
         # end for
     # end with
-# end def
-
-def _rm_tmp_files(*fpaths: str) -> None:
-    for fpath in fpaths:
-        if os.path.isfile(fpath):
-            try:
-                os.unlink(fpath)
-            except OSError as err:
-                sys.stderr.write('Error: cannot remove temp file `{}`'.format(fpath))
-                sys.stderr.write(str(err))
-                sys.stderr.write('Ignoring...')
-            # end try
-        # end if
-    # end for
 # end def
