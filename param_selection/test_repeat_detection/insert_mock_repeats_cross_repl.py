@@ -19,13 +19,11 @@ from mock_repeats_settings import RATE_FROM, \
 random.seed(RANDOM_SEED)
 
 REPEAT_COORDS_RE = re.compile(r'start=([1-9][0-9]*) end=([1-9][0-9]*)')
-SHOULDER_LEN = 200 # bp, around the original repeat
-
 
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
-IN_MOCK_REPEATS_FILE = os.path.abspath(sys.argv[2])
-IN_PIPELINE_DATA_DIR = os.path.abspath(sys.argv[3])
-MASK_ALL_BUT_REPEATS: bool = sys.argv[4] == '1'
+IN_PLASMID_FPATH = os.path.abspath(sys.argv[2])
+IN_MOCK_REPEATS_FILE = os.path.abspath(sys.argv[3])
+IN_PIPELINE_DATA_DIR = os.path.abspath(sys.argv[4])
 
 
 
@@ -56,9 +54,10 @@ def make_chr_with_insert_base_name(mock_repeat_seq_record, rate=None):
 
 def insert_mock_repeat(chr_record,
                        mock_repeat_seq_record,
-                       mask_all_but_repeats=False):
+                       original_seq_id='replicon_1'):
     chr_len = len(chr_record)
     chr_str = str(chr_record.seq)
+    inserted_chr_id = 'replicon_2'
 
     repeat_descr = mock_repeat_seq_record.description
     re_result = re.search(REPEAT_COORDS_RE, repeat_descr)
@@ -66,33 +65,29 @@ def insert_mock_repeat(chr_record,
     orig_start_coord_closed = int(re_result.group(1))
     orig_end_coord_closed = int(re_result.group(2))
 
-    end_coord_broader = orig_end_coord_closed + SHOULDER_LEN
-    insert_start_coord_closed = random.randint(end_coord_broader, chr_len)
+    insert_start_coord_closed = random.randint(0, chr_len)
     insert_end_coord_open = insert_start_coord_closed + len(mock_repeat_seq_record)
 
     orig_end_coord_open = orig_end_coord_closed + 1
     true_repeat_coords = (
-        (chr_record.id, orig_start_coord_closed, orig_end_coord_open),
-        (chr_record.id, insert_start_coord_closed, insert_end_coord_open),
+        (original_seq_id,   orig_start_coord_closed,   orig_end_coord_open),
+        (inserted_chr_id, insert_start_coord_closed, insert_end_coord_open),
     )
 
     repeat_str = str(mock_repeat_seq_record.seq)
     end_coord_inserted_closed = insert_end_coord_open - 1
     new_chr_str = chr_str[:insert_start_coord_closed] + repeat_str + chr_str[insert_start_coord_closed:]
 
-    if mask_all_but_repeats:
-        new_chr_str = mask_all_but_repeats(
-            new_chr_str,
-            orig_start_coord_closed,
-            orig_end_coord_closed,
-            insert_start_coord_closed,
-            end_coord_inserted_closed
-        )
-    # end if
+    # TODO: remove
+    # new_chr_str = mask_region_with_n(
+    #     new_chr_str,
+    #     start_closed=insert_start_coord_closed,
+    #     end_open=insert_end_coord_open
+    # )
 
     new_chr_record = SeqRecord(
         Seq(new_chr_str),
-        id=chr_record.id,
+        id=inserted_chr_id,
         description=''
     )
 
@@ -104,25 +99,14 @@ def insert_mock_repeat(chr_record,
     return new_chr_record, true_repeat_coords, strand
 # end def
 
-def mask_all_but_repeats(chr_str,
-                         orig_start_coord_closed,
-                         orig_end_coord_closed,
-                         insert_start_coord_closed,
-                         end_coord_inserted_closed):
-    new_chr_chars = list(chr_str)
-
-    for i in range(0, orig_start_coord_closed):
-        new_chr_chars[i] = 'n'
-    # end for
-    for i in range(orig_end_coord_closed+1, insert_start_coord_closed):
-        new_chr_chars[i] = 'n'
-    # end for
-    for i in range(end_coord_inserted_closed+1, len(new_chr_chars)):
-        new_chr_chars[i] = 'n'
-    # end for
-
-    return ''.join(new_chr_chars)
-# end def
+# TODO: remove
+# def mask_region_with_n(chr_str, start_closed, end_open):
+#     new_chr_chars = list(chr_str)
+#     for i in range(start_closed, end_open):
+#         new_chr_chars[i] = 'n'
+#     # end for
+#     return ''.join(new_chr_chars)
+# # end def
 
 def make_curr_outdir_path(repeat_record, rate=None):
     if rate is None:
@@ -163,6 +147,11 @@ def parse_repat_len_from_repeat_id(repeat_id):
 chr_record = next(iter(tuple(
     SeqIO.parse(IN_GENOME_FPATH, 'fasta')
 )))
+chr_record.id = 'replicon_1'
+
+plasmid_record = next(iter(tuple(
+    SeqIO.parse(IN_PLASMID_FPATH, 'fasta')
+)))
 
 chr_with_inserts_dir_path = os.path.join(
     IN_PIPELINE_DATA_DIR,
@@ -201,9 +190,8 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
         
         for repeat_record in repeat_records:
             chr_record_with_insert, true_repeat_coords, strand = insert_mock_repeat(
-                chr_record,
-                repeat_record,
-                MASK_ALL_BUT_REPEATS
+                plasmid_record,
+                repeat_record
             )
 
             chr_with_insert_fpath = os.path.join(
@@ -213,7 +201,7 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
 
             with open(chr_with_insert_fpath, 'wt') as tmp_out_handle:
                 SeqIO.write(
-                    [chr_record_with_insert,],
+                    [chr_record, chr_record_with_insert,],
                     tmp_out_handle,
                     'fasta'
                 )

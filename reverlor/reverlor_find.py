@@ -31,7 +31,7 @@ if sys.version_info.major < 3:
 
 # >>> Import functions >>>
 from src.FindArgs import FindArgs
-from src.find_repeats import find_repeats as find_repeats_minimap2
+from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 from src.find_repeats_RepeatScout import find_repeats as find_repeats_repeatscout
 from src.find_repeats_phRAIDER import find_repeats as find_repeats_phraider
 # <<<

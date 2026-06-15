@@ -27,6 +27,7 @@ with open(out_fpath, 'wt') as out_handle:
 
     out_handle.write(
         '{}\n'.format(sep.join([
+            'chr',
             'repeat_len',
             'repeat_idx',
             'rate',
@@ -72,6 +73,7 @@ with open(out_fpath, 'wt') as out_handle:
                 # end if
 
                 out_handle.write('{}\n'.format(sep.join([
+                    bed_values[0],
                     repeat_len,
                     repeat_idx,
                     rate,

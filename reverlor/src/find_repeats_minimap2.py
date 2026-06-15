@@ -43,6 +43,7 @@ def _self_map_genome(args: FindArgs,
         '-k', str(args.minimap_k),
         '-w', str(args.minimap_w),
         '-m', str(args.minimap_m),
+        '-t', '1',
         args.fasta_fpath,
         args.fasta_fpath,
     ]

@@ -9,11 +9,12 @@ FINDER='phraider' # choice
 MASK_ALL_BUT_REPEATS=0 # choice
 # MASK_ALL_BUT_REPEATS=1 # choice
 
-N_THREADS=8
+N_THREADS=6
 
 WORKDIR='/mnt/data/Max/repos/reverlor'
 reverlor_find_fpath="${WORKDIR}/reverlor/reverlor_find.py"
 genome_fasta="${WORKDIR}/param_selection/data/Mycoplasma_mycoides_JCVI-syn3.0.fasta"
+plasmid_fasta="${WORKDIR}/param_selection/data/pUC18.fasta"
 pipeline_dir="${WORKDIR}/param_selection/test_repeat_detection"
 
 pipeline_workdir="${pipeline_dir}/workdir_${FINDER}"
@@ -40,12 +41,20 @@ python3 mutate_mock_repeats.py \
     "${mock_repeats_file}" \
     "${pipeline_workdir}"
 
-echo "$(date) -- Running insert_mock_repeats.py"
-python3 insert_mock_repeats.py \
+# TODO: remove?
+# # echo "$(date) -- Running insert_mock_repeats.py"
+# # python3 insert_mock_repeats.py \
+# #     "${genome_fasta}" \
+# #     "${mock_repeats_file}" \
+# #     "${pipeline_workdir}" \
+# #     "${MASK_ALL_BUT_REPEATS}"
+
+echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
+python3 insert_mock_repeats_cross_repl.py \
     "${genome_fasta}" \
+    "${plasmid_fasta}" \
     "${mock_repeats_file}" \
-    "${pipeline_workdir}" \
-    "${MASK_ALL_BUT_REPEATS}"
+    "${pipeline_workdir}"
 
 echo "$(date) -- Running find_mock_repeats.py"
 python3 find_mock_repeats_parallel.py \
