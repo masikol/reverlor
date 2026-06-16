@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
 import argparse
 import subprocess as sp
@@ -15,7 +16,7 @@ MINIMAP_M_DEFAULT = 127
 MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
 DEFAULT_MIN_REPAT_LEN = 200
 DEFAULT_MIN_REPEAT_INTERVAL = 100
-FINDER_CHOICES = ('minimap2', 'repeatscout', 'phraider')
+FINDER_CHOICES = ('minimap2', 'repeat-scout', 'phraider', 'total-repeats')
 
 
 # >>> Helper functions >>>
@@ -99,6 +100,18 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         default=None,
         help='Path to phRAIDER executable'
     )
+    parser.add_argument(
+        '--total-repeats',
+        type=str,
+        default=None,
+        help='Path to TotalRepeats.jar executable'
+    )
+    parser.add_argument(
+        '--java',
+        type=str,
+        default='java',
+        help='Path to Java 25+ executable (default: java)'
+    )
 # end def
 
 
@@ -133,10 +146,13 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.exit(1)
     # end if
 
-    if args.finder == 'repeatscout':
+    if args.finder == 'repeat-scout':
         _validate_repeat_scout(args.repeat_scout)
     elif args.finder == 'phraider':
         _validate_phraider(args.phraider)
+    elif args.finder == 'total-repeats':
+        _validate_total_repeats(args.total_repeats)
+        _validate_java(args.java)
     else:
         _validate_minimap2(args.minimap2)
     # end if
@@ -192,6 +208,46 @@ def _validate_phraider(phraider_fpath: Optional[str]) -> None:
     # end if
 # end def
 
+def _validate_total_repeats(total_repeats_fpath: Optional[str]) -> None:
+    if total_repeats_fpath is None:
+        return
+    # end if
+    if not os.path.isfile(total_repeats_fpath):
+        sys.stderr.write(
+            'Error: TotalRepeats JAR `{}` does not exist\n'.format(total_repeats_fpath)
+        )
+        sys.exit(1)
+    # end if
+# end def
+
+def _validate_java(java_fpath: str) -> None:
+    cmd = [java_fpath, '-version']
+    pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
+    out, err = pipe.communicate()
+    if pipe.returncode != 0:
+        sys.stderr.write(
+            'Error: cannot run Java executable `{}`\n'.format(java_fpath)
+        )
+        sys.stderr.write(err)
+        sys.exit(1)
+    # end if
+    for line in (out or '').splitlines() + (err or '').splitlines():
+        m = re.search(r'"(\d+)\.', line)
+        if m is not None:
+            major = int(m.group(1))
+            if major >= 25:
+                return
+            # end if
+            sys.stderr.write(
+                'Error: Java version {} is too old, need >= 25\n'.format(major)
+            )
+            sys.exit(1)
+        # end if
+    # end for
+    sys.stderr.write('Error: could not detect Java version\n')
+    sys.exit(1)
+# end def
+
 def _validate_bedtools(executable_fpath: str) -> None:
     cmd = [
         executable_fpath,
@@ -228,7 +284,9 @@ class FindArgs:
                  minimap_x: Optional[str]=None,
                  finder: str='minimap2',
                  repeat_scout_dir: Optional[str]=None,
-                 phraider_fpath: Optional[str]=None):
+                 phraider_fpath: Optional[str]=None,
+                 total_repeats_fpath: Optional[str]=None,
+                 java_fpath: str='java'):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
@@ -241,6 +299,8 @@ class FindArgs:
         self.finder: str = finder
         self.repeat_scout_dir: Optional[str] = repeat_scout_dir
         self.phraider_fpath: str = phraider_fpath
+        self.total_repeats_fpath: str = total_repeats_fpath
+        self.java_fpath: str = java_fpath
         if repeat_scout_dir is not None:
             self.build_lmer_table_fpath: str = os.path.join(
                 repeat_scout_dir,
@@ -280,6 +340,8 @@ class FindArgs:
             finder=args.finder,
             repeat_scout_dir=args.repeat_scout,
             phraider_fpath=args.phraider,
+            total_repeats_fpath=args.total_repeats,
+            java_fpath=args.java,
         )
     # end def
 # end class

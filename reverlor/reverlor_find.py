@@ -34,16 +34,19 @@ from src.FindArgs import FindArgs
 from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 from src.find_repeats_RepeatScout import find_repeats as find_repeats_repeatscout
 from src.find_repeats_phRAIDER import find_repeats as find_repeats_phraider
+from src.find_repeats_TotalRepeats import find_repeats as find_repeats_total_repeats
 # <<<
 
 # >>> Functions >>>
 
 def reverlor_find():
     args = FindArgs.parse_args()
-    if args.finder == 'repeatscout':
+    if args.finder == 'repeat-scout':
         repeats_bed = find_repeats_repeatscout(args)
     elif args.finder == 'phraider':
         repeats_bed = find_repeats_phraider(args)
+    elif args.finder == 'total-repeats':
+        repeats_bed = find_repeats_total_repeats(args)
     else:
         repeats_bed = find_repeats_minimap2(args)
     # end if

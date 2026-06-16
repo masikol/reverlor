@@ -29,7 +29,7 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
 
     if FINDER == 'phraider':
         cmd += ['--phraider', PHRAIDER_PATH]
-    elif FINDER == 'repeatscout':
+    elif FINDER == 'repeat-scout':
         cmd += ['--repeat-scout', REPEAT_SCOUT_DIR_PATH]
     # end if
 
