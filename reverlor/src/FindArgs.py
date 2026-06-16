@@ -118,6 +118,12 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         default=False,
         help='Keep temporary files (default: False)'
     )
+    parser.add_argument(
+        '--tmpdir',
+        type=str,
+        default=None,
+        help='Temporary directory for TotalRepeats (default: system temp dir)'
+    )
 # end def
 
 
@@ -216,7 +222,9 @@ def _validate_phraider(phraider_fpath: Optional[str]) -> None:
 
 def _validate_total_repeats(total_repeats_fpath: Optional[str]) -> None:
     if total_repeats_fpath is None:
-        return
+        sys.stderr.write('Error: TotalRepeats JAR is not provided\n')
+        sys.stderr.write('Please provide it with the --total-repeats option\n')
+        sys.exit(1)
     # end if
     if not os.path.isfile(total_repeats_fpath):
         sys.stderr.write(
@@ -293,7 +301,8 @@ class FindArgs:
                  phraider_fpath: Optional[str]=None,
                  total_repeats_fpath: Optional[str]=None,
                  java_fpath: str='java',
-                 keep_tmp: bool=False):
+                 keep_tmp: bool=False,
+                 tmpdir: Optional[str]=None):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
@@ -309,6 +318,7 @@ class FindArgs:
         self.total_repeats_fpath: str = total_repeats_fpath
         self.java_fpath: str = java_fpath
         self.keep_tmp: bool = keep_tmp
+        self.tmpdir: Optional[str] = tmpdir
         if repeat_scout_dir is not None:
             self.build_lmer_table_fpath: str = os.path.join(
                 repeat_scout_dir,
@@ -351,6 +361,7 @@ class FindArgs:
             total_repeats_fpath=args.total_repeats,
             java_fpath=args.java,
             keep_tmp=args.keep_tmp,
+            tmpdir=args.tmpdir,
         )
     # end def
 # end class

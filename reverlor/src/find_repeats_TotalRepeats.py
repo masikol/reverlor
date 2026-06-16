@@ -6,6 +6,7 @@ import sys
 import glob
 import tempfile
 import subprocess as sp
+
 from .FindArgs import FindArgs
 from .bed_lib import merge_features
 from .util import rm_files_if_exist, rm_empty_dir_if_exists
@@ -39,18 +40,19 @@ def find_repeats(args: FindArgs) -> str:
 def _create_raw_repeat_file(args: FindArgs,
                             output_bed_fpath: str) -> None:
 
-    tmp_dir = tempfile.mkdtemp()
+    tmp_dir_extract = tempfile.mkdtemp(dir=args.tmpdir)
+    tmp_dir_repeats = tempfile.mkdtemp(dir=args.tmpdir)
 
-    _run_extract_fasta(args, tmp_dir)
-    _run_detect_repeats(args, tmp_dir)
+    _run_extract_fasta(args, tmp_dir_extract)
+    _run_detect_repeats(args, tmp_dir_extract, tmp_dir_repeats)
 
     # Convert GFF files to BED
-    gff_fpaths = _find_relevant_gff_files(args.output_dir)
+    gff_fpaths = _find_relevant_gff_files(tmp_dir_repeats)
 
     _gffs_to_bed(gff_fpaths, output_bed_fpath)
 
     if not args.keep_tmp:
-        _clean_up(args.output_dir, tmp_dir)
+        _clean_up(tmp_dir_extract, tmp_dir_repeats)
     # end if
 # end def
 
@@ -65,6 +67,7 @@ def _run_extract_fasta(args: FindArgs,
         '-extract',
         '-normal',
     ]
+
     extract_proc = sp.run(extract_cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
     if extract_proc.returncode != 0:
         sys.stderr.write(
@@ -80,12 +83,13 @@ def _run_extract_fasta(args: FindArgs,
 
 
 def _run_detect_repeats(args: FindArgs,
-                        tmp_dir: str) -> None:
+                        tmp_dir_extract: str,
+                        tmp_dir_repeats: str) -> None:
 
     detect_cmd = [
         args.java_fpath, '-jar', args.total_repeats_fpath,
-        tmp_dir,
-        '-out={}'.format(args.output_dir),
+        tmp_dir_extract,
+        '-out={}'.format(tmp_dir_repeats),
         '-sln={}'.format(args.min_repeat_len),
         '-joint',
         '-normal',
@@ -184,12 +188,13 @@ def _gffs_to_bed(gff_fpaths: list,
 # end def
 
 
-def _clean_up(out_dir_path: str, tmp_dir_path: str) -> None:
-    fpaths_to_rm = glob.glob(os.path.join(tmp_dir_path, '.fasta')) \
-        + glob.glob(os.path.join(tmp_dir_path, 'report.txt'))
+def _clean_up(tmp_dir_extract: str, tmp_dir_repeats: str) -> None:
+    fpaths_to_rm = glob.glob(os.path.join(tmp_dir_extract, '*.fasta')) \
+        + glob.glob(os.path.join(tmp_dir_extract, 'report.txt'))
     for ext in ('*.gff', '*.svg', '*.png', '*.msk', '*.tsv', '*.txt'):
-        fpaths_to_rm.extend(glob.glob(os.path.join(out_dir_path, ext)))
+        fpaths_to_rm.extend(glob.glob(os.path.join(tmp_dir_repeats, ext)))
     # end for
     rm_files_if_exist(*fpaths_to_rm)
-    rm_empty_dir_if_exists(tmp_dir_path)
+    rm_empty_dir_if_exists(tmp_dir_extract)
+    rm_empty_dir_if_exists(tmp_dir_repeats)
 # end def

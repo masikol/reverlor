@@ -18,4 +18,6 @@ REPEAT_SCOUT_DIR_PATH = '/mnt/data/Max/Soft/Repeat_Finders/RepeatScout-1.0.7'
 
 PHRAIDER_PATH = '/mnt/data/Max/Soft/Repeat_Finders/phRAIDER-master/phRAIDER/phRAIDER'
 
-TORALREPEATS_PATH = '/mnt/data/Max/Soft/Repeat_Finders/TotalRepeats-master_7435616/dist/TotalRepeats.jar'
+TORALREPEATS_PATH = '/home/cager-max/Soft/TotalRepeats-master_7435616/dist/TotalRepeats.jar'
+
+TMP_DIR_PATH = '/mnt/tmp_buff'

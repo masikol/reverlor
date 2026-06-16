@@ -6,7 +6,7 @@ import subprocess as sp
 
 import polars as pl
 
-from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, PHRAIDER_PATH
+from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, PHRAIDER_PATH, TMP_DIR_PATH
 
 
 PIPELINE_DATA_DIRPATH = os.path.abspath(sys.argv[1])
@@ -21,6 +21,7 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         '--finder', FINDER,
         '--minimap-m', '65',
         '--min-repeat-len', '127',
+        '--tmpdir', TMP_DIR_PATH,
         input_fasta_fpath,
         out_dir_path,
     ]
