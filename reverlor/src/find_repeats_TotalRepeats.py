@@ -23,7 +23,9 @@ def find_repeats(args: FindArgs) -> str:
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
-    rm_files_if_exist(raw_bed_fpath)
+    if not args.keep_tmp:
+        rm_files_if_exist(raw_bed_fpath)
+    # end if
 
     sys.stderr.write('\n')
     sys.stderr.write('INFO: Completed!\n')
@@ -47,9 +49,9 @@ def _create_raw_repeat_file(args: FindArgs,
 
     _gffs_to_bed(gff_fpaths, output_bed_fpath)
 
-    # TODO: --keep-tmp
-    # Clean up tmp files
-    _clean_up(args.output_dir, tmp_dir)
+    if not args.keep_tmp:
+        _clean_up(args.output_dir, tmp_dir)
+    # end if
 # end def
 
 

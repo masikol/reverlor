@@ -5,6 +5,7 @@ import sys
 import subprocess as sp
 from .FindArgs import FindArgs
 from .bed_lib import merge_features
+from .util import rm_files_if_exist
 
 
 def find_repeats(args: FindArgs) -> str:
@@ -17,8 +18,8 @@ def find_repeats(args: FindArgs) -> str:
     _create_raw_repeat_file(args, raw_bed_fpath)
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
-    if os.path.isfile(raw_bed_fpath):
-        os.remove(raw_bed_fpath)
+    if not args.keep_tmp:
+        rm_files_if_exist(raw_bed_fpath)
     # end if
 
     sys.stderr.write('\n')

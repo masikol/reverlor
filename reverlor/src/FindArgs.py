@@ -112,6 +112,12 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         default='java',
         help='Path to Java 25+ executable (default: java)'
     )
+    parser.add_argument(
+        '--keep-tmp',
+        action='store_true',
+        default=False,
+        help='Keep temporary files (default: False)'
+    )
 # end def
 
 
@@ -286,7 +292,8 @@ class FindArgs:
                  repeat_scout_dir: Optional[str]=None,
                  phraider_fpath: Optional[str]=None,
                  total_repeats_fpath: Optional[str]=None,
-                 java_fpath: str='java'):
+                 java_fpath: str='java',
+                 keep_tmp: bool=False):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
@@ -301,6 +308,7 @@ class FindArgs:
         self.phraider_fpath: str = phraider_fpath
         self.total_repeats_fpath: str = total_repeats_fpath
         self.java_fpath: str = java_fpath
+        self.keep_tmp: bool = keep_tmp
         if repeat_scout_dir is not None:
             self.build_lmer_table_fpath: str = os.path.join(
                 repeat_scout_dir,
@@ -342,6 +350,7 @@ class FindArgs:
             phraider_fpath=args.phraider,
             total_repeats_fpath=args.total_repeats,
             java_fpath=args.java,
+            keep_tmp=args.keep_tmp,
         )
     # end def
 # end class

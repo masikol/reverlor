@@ -20,7 +20,9 @@ def find_repeats(args: FindArgs) -> str:
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
-    rm_files_if_exist(raw_bed_fpath)
+    if not args.keep_tmp:
+        rm_files_if_exist(raw_bed_fpath)
+    # end if
 
     sys.stderr.write('\n')
     sys.stderr.write('INFO: Completed!\n')
@@ -45,14 +47,16 @@ def _create_raw_repeat_file(args: FindArgs,
     # Step 2: RepeatScout
     _run_repeat_scout(args, freq_fpath, fasta_out_fpath, range_fpath)
 
-    # clean up temp files
-    rm_files_if_exist(freq_fpath, fasta_out_fpath)
+    if not args.keep_tmp:
+        rm_files_if_exist(freq_fpath, fasta_out_fpath)
+    # end if
 
     # Step 3: Convert .range file to a BED file
     _range_to_bed(range_fpath, output_bed_fpath)
 
-    # clean up temp files
-    rm_files_if_exist(range_fpath)
+    if not args.keep_tmp:
+        rm_files_if_exist(range_fpath)
+    # end if
 # end def
 
 def _run_build_lmer_table(args: FindArgs, freq_fpath: str) -> None:

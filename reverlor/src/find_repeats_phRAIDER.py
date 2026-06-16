@@ -21,7 +21,9 @@ def find_repeats(args: FindArgs) -> str:
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
-    rm_files_if_exist(raw_bed_fpath)
+    if not args.keep_tmp:
+        rm_files_if_exist(raw_bed_fpath)
+    # end if
 
     sys.stderr.write('\n')
     sys.stderr.write('INFO: Completed!\n')
@@ -75,8 +77,9 @@ def _create_raw_repeat_file(args: FindArgs,
     elements_fpath = os.path.join(phraider_out_dir, 'elements')
     _elements_to_bed(elements_fpath, output_bed_fpath)
 
-    # Clean up phRAIDER output directory
-    shutil.rmtree(phraider_out_dir)
+    if not args.keep_tmp:
+        shutil.rmtree(phraider_out_dir)
+    # end if
 # end def
 
 
