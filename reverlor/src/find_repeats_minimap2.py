@@ -14,7 +14,7 @@ def find_repeats(args: FindArgs) -> str:
     raw_bed_fpath = os.path.join(args.output_dir, 'repeats_raw.bed')
     merged_bed_fpath = os.path.join(args.output_dir, 'repeats_final.bed')
 
-    _self_map_genome(args, raw_bed_fpath)
+    _create_raw_repeat_file(args, raw_bed_fpath)
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
     if os.path.isfile(raw_bed_fpath):
@@ -30,8 +30,8 @@ def find_repeats(args: FindArgs) -> str:
 # end def
 
 
-def _self_map_genome(args: FindArgs,
-                     output_bed_fpath: str) -> None:
+def _create_raw_repeat_file(args: FindArgs,
+                            output_bed_fpath: str) -> None:
 
     cmd = [args.minimap2_fpath]
     if args.minimap_x is not None:

@@ -16,3 +16,14 @@ def rm_files_if_exist(*fpaths: str) -> None:
         # end if
     # end for
 # end def
+
+
+def rm_empty_dir_if_exists(dir_path: str) -> None:
+    try:
+        os.rmdir(dir_path)
+    except OSError as err:
+        sys.stderr.write('Error: cannot remove temp dir `{}`'.format(dir_path))
+        sys.stderr.write(str(err))
+        sys.stderr.write('Ignoring...')
+    # end try
+# end def

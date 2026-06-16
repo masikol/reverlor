@@ -4,12 +4,11 @@ import os
 import re
 import sys
 import glob
-import shutil
 import tempfile
 import subprocess as sp
 from .FindArgs import FindArgs
 from .bed_lib import merge_features
-from .util import rm_files_if_exist
+from .util import rm_files_if_exist, rm_empty_dir_if_exists
 
 
 def find_repeats(args: FindArgs) -> str:
@@ -20,7 +19,7 @@ def find_repeats(args: FindArgs) -> str:
     merged_bed_fpath = os.path.join(args.output_dir, 'repeats_final.bed')
 
     sys.stderr.write('INFO: Silently running TotalRepeats\n')
-    _find_repeats_total_repeats(args, raw_bed_fpath)
+    _create_raw_repeat_file(args, raw_bed_fpath)
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
@@ -35,12 +34,28 @@ def find_repeats(args: FindArgs) -> str:
 # end def
 
 
-def _find_repeats_total_repeats(args: FindArgs,
-                                output_bed_fpath: str) -> None:
+def _create_raw_repeat_file(args: FindArgs,
+                            output_bed_fpath: str) -> None:
 
     tmp_dir = tempfile.mkdtemp()
 
-    # Step 1: extract
+    _run_extract_fasta(args, tmp_dir)
+    _run_detect_repeats(args, tmp_dir)
+
+    # Convert GFF files to BED
+    gff_fpaths = _find_relevant_gff_files(args.output_dir)
+
+    _gffs_to_bed(gff_fpaths, output_bed_fpath)
+
+    # TODO: --keep-tmp
+    # Clean up tmp files
+    _clean_up(args.output_dir, tmp_dir)
+# end def
+
+
+def _run_extract_fasta(args: FindArgs,
+                       tmp_dir: str) -> None:
+
     extract_cmd = [
         args.java_fpath, '-jar', args.total_repeats_fpath,
         args.fasta_fpath,
@@ -58,8 +73,12 @@ def _find_repeats_total_repeats(args: FindArgs,
         sys.stderr.write(extract_proc.stderr)
         sys.exit(1)
     # end if
+# end def
 
-    # Step 2: detect repeats
+
+def _run_detect_repeats(args: FindArgs,
+                        tmp_dir: str) -> None:
+
     detect_cmd = [
         args.java_fpath, '-jar', args.total_repeats_fpath,
         tmp_dir,
@@ -78,9 +97,11 @@ def _find_repeats_total_repeats(args: FindArgs,
         sys.stderr.write(detect_proc.stderr)
         sys.exit(1)
     # end if
+# end def
 
-    # Convert GFF files to BED
-    gff_pattern = os.path.join(args.output_dir, '*.fasta.gff')
+
+def _find_relevant_gff_files(dir_path: str) -> list[str]:
+    gff_pattern = os.path.join(dir_path, '*.fasta.gff')
     gff_fpaths = sorted(glob.glob(gff_pattern))
     if len(gff_fpaths) == 0:
         sys.stderr.write(
@@ -90,16 +111,7 @@ def _find_repeats_total_repeats(args: FindArgs,
         )
         sys.exit(1)
     # end if
-    _gffs_to_bed(gff_fpaths, output_bed_fpath)
-
-    # Clean up files produced by TotalRepeats
-    for ext in ('*.gff', '*.svg', '*.png', '*.msk', '*.tsv', '*.txt'):
-        for fpath in glob.glob(os.path.join(args.output_dir, ext)):
-            rm_files_if_exist(fpath)
-        # end for
-    # end for
-
-    shutil.rmtree(tmp_dir, ignore_errors=True)
+    return gff_fpaths
 # end def
 
 
@@ -120,17 +132,19 @@ def _gffs_to_bed(gff_fpaths: list,
     with open(output_bed_fpath, 'wt') as bed_handle:
         for gff_fpath in gff_fpaths:
             with open(gff_fpath, 'rt') as gff_handle:
-                for idx, line in enumerate(gff_handle):
-                    if idx < 12:
-                        continue
-                    # end if
+                # Pass first 12 lines
+                for _ in range(12):
+                    gff_handle.readline()
+                # end for
+
+                for line_idx, line in enumerate(gff_handle, 1):
 
                     fields = line.strip().split(sep)
 
                     if len(fields) < 7:
                         sys.stderr.write(
                             'ERROR: cannot parse line #{} in file `{}`\n'.format(
-                                idx + 1,
+                                line_idx,
                                 gff_fpath
                             )
                         )
@@ -163,4 +177,15 @@ def _gffs_to_bed(gff_fpaths: list,
             # end with
         # end for
     # end with
+# end def
+
+
+def _clean_up(out_dir_path: str, tmp_dir_path: str) -> None:
+    fpaths_to_rm = glob.glob(os.path.join(tmp_dir_path, '.fasta')) \
+        + glob.glob(os.path.join(tmp_dir_path, 'report.txt'))
+    for ext in ('*.gff', '*.svg', '*.png', '*.msk', '*.tsv', '*.txt'):
+        fpaths_to_rm.extend(glob.glob(os.path.join(out_dir_path, ext)))
+    # end for
+    rm_files_if_exist(*fpaths_to_rm)
+    rm_empty_dir_if_exists(tmp_dir_path)
 # end def

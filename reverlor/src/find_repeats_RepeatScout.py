@@ -16,7 +16,7 @@ def find_repeats(args: FindArgs) -> str:
     merged_bed_fpath = os.path.join(args.output_dir, 'repeats_final.bed')
 
     sys.stderr.write('INFO: Silently running RepearScout\n')
-    _find_repeats_repeat_scout(args, raw_bed_fpath)
+    _create_raw_repeat_file(args, raw_bed_fpath)
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
@@ -31,8 +31,8 @@ def find_repeats(args: FindArgs) -> str:
 # end def
 
 
-def _find_repeats_repeat_scout(args: FindArgs,
-                               output_bed_fpath: str) -> None:
+def _create_raw_repeat_file(args: FindArgs,
+                            output_bed_fpath: str) -> None:
 
     basename = os.path.splitext(os.path.basename(args.fasta_fpath))[0]
     freq_fpath = os.path.join(args.output_dir, f'{basename}.freq')
