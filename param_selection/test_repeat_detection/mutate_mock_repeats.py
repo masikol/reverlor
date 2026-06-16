@@ -2,6 +2,7 @@
 
 import os
 import sys
+import glob
 
 import numpy as np
 
@@ -50,8 +51,14 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
         sys.stderr.write('Error running mutation-simulator')
         sys.exit(1)
     # end if
-# end def
+# end for
 
 
+vcf_pattern = os.path.join(outdir_path, '*.vcf')
+for fpath in glob.iglob(vcf_pattern):
+    if os.path.isfile(fpath):
+        os.unlink(fpath)
+    # end if
+# end if
 
 sys.exit(0)

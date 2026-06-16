@@ -21,26 +21,29 @@ random.seed(RANDOM_SEED)
 REPEAT_COORDS_RE = re.compile(r'start=([1-9][0-9]*) end=([1-9][0-9]*)')
 SHOULDER_LEN = 200 # bp, around the original repeat
 
-
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
-IN_MOCK_REPEATS_FILE = os.path.abspath(sys.argv[2])
-IN_PIPELINE_DATA_DIR = os.path.abspath(sys.argv[3])
-MASK_ALL_BUT_REPEATS: bool = sys.argv[4] == '1'
+IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[2])
+MASK_ALL_BUT_REPEATS: bool = sys.argv[3] == '1'
+
+IN_MOCK_REPEATS_FPATH = os.path.join(
+    IN_MOCK_REPEATS_DIRPATH,
+    'mock_repeats.fasta'
+)
 
 
 
 def make_mock_repat_fasta_fpath(rate=None):
     if rate is None:
-        return IN_MOCK_REPEATS_FILE
+        return IN_MOCK_REPEATS_FPATH
     # end if
 
     rate_str = '{:.2f}'.format(rate).replace('.', 'dot')
-    out_basename = os.path.basename(IN_MOCK_REPEATS_FILE).replace(
+    out_basename = os.path.basename(IN_MOCK_REPEATS_FPATH).replace(
         '.fasta',
         '_{}_ms.fasta'.format(rate_str)
     )
     return os.path.join(
-        IN_PIPELINE_DATA_DIR,
+        IN_MOCK_REPEATS_DIRPATH,
         out_basename
     )
 # end def
@@ -131,8 +134,8 @@ def make_curr_outdir_path(repeat_record, rate=None):
         base_name = 'default_{}_{:.2f}'.format(repeat_record.id, rate)
     # end def
     return os.path.join(
-        IN_PIPELINE_DATA_DIR,
-        'find_repeats_results',
+        IN_MOCK_REPEATS_DIRPATH,
+        'true_repeat_locations',
         base_name
     )
 # end def
@@ -165,7 +168,7 @@ chr_record = next(iter(tuple(
 )))
 
 chr_with_inserts_dir_path = os.path.join(
-    IN_PIPELINE_DATA_DIR,
+    IN_MOCK_REPEATS_DIRPATH,
     'chr_with_inserts'
 )
 if not os.path.isdir(chr_with_inserts_dir_path):
@@ -173,7 +176,7 @@ if not os.path.isdir(chr_with_inserts_dir_path):
 # end if
 
 test_combintations_fpath = os.path.join(
-    IN_PIPELINE_DATA_DIR,
+    IN_MOCK_REPEATS_DIRPATH,
     'test_combintations.tsv'
 )
 

@@ -8,12 +8,13 @@ import glob
 import polars as pl
 
 
-input_dir = os.path.abspath(sys.argv[1])
-out_fpath = os.path.abspath(sys.argv[2])
+in_detected_dir = os.path.abspath(sys.argv[1])
+in_true_dir = os.path.abspath(sys.argv[2])
+out_fpath = os.path.abspath(sys.argv[3])
 
 
 IN_GLOB = sorted(glob.glob(
-    os.path.join(input_dir, 'default_mock_repeat_*')
+    os.path.join(in_true_dir, 'default_mock_repeat_*')
 ))
 
 FIND_RESULT_DIR_NAME_RE = re.compile(
@@ -51,8 +52,9 @@ with open(out_fpath, 'wt') as out_handle:
             rate = '0.00'
         # end if
 
-        true_fpath = os.path.join(in_dir_path, 'repeats_final.true.bed')
-        pred_fpath = os.path.join(in_dir_path, 'repeats_final.bed')
+        dir_base_name = os.path.basename(in_dir_path)
+        true_fpath = os.path.join(in_true_dir, dir_base_name, 'repeats_final.true.bed')
+        pred_fpath = os.path.join(in_detected_dir, dir_base_name, 'repeats_final.bed')
         out_zip = zip(
             [true_fpath, pred_fpath,],
             ['true', 'pred',],

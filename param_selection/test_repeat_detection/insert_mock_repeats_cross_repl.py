@@ -22,23 +22,27 @@ REPEAT_COORDS_RE = re.compile(r'start=([1-9][0-9]*) end=([1-9][0-9]*)')
 
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
 IN_PLASMID_FPATH = os.path.abspath(sys.argv[2])
-IN_MOCK_REPEATS_FILE = os.path.abspath(sys.argv[3])
-IN_PIPELINE_DATA_DIR = os.path.abspath(sys.argv[4])
+IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[3])
+
+IN_MOCK_REPEATS_FPATH = os.path.join(
+    IN_MOCK_REPEATS_DIRPATH,
+    'mock_repeats.fasta'
+)
 
 
 
 def make_mock_repat_fasta_fpath(rate=None):
     if rate is None:
-        return IN_MOCK_REPEATS_FILE
+        return IN_MOCK_REPEATS_FPATH
     # end if
 
     rate_str = '{:.2f}'.format(rate).replace('.', 'dot')
-    out_basename = os.path.basename(IN_MOCK_REPEATS_FILE).replace(
+    out_basename = os.path.basename(IN_MOCK_REPEATS_FPATH).replace(
         '.fasta',
         '_{}_ms.fasta'.format(rate_str)
     )
     return os.path.join(
-        IN_PIPELINE_DATA_DIR,
+        IN_MOCK_REPEATS_DIRPATH,
         out_basename
     )
 # end def
@@ -78,13 +82,6 @@ def insert_mock_repeat(chr_record,
     end_coord_inserted_closed = insert_end_coord_open - 1
     new_chr_str = chr_str[:insert_start_coord_closed] + repeat_str + chr_str[insert_start_coord_closed:]
 
-    # TODO: remove
-    # new_chr_str = mask_region_with_n(
-    #     new_chr_str,
-    #     start_closed=insert_start_coord_closed,
-    #     end_open=insert_end_coord_open
-    # )
-
     new_chr_record = SeqRecord(
         Seq(new_chr_str),
         id=inserted_chr_id,
@@ -99,15 +96,6 @@ def insert_mock_repeat(chr_record,
     return new_chr_record, true_repeat_coords, strand
 # end def
 
-# TODO: remove
-# def mask_region_with_n(chr_str, start_closed, end_open):
-#     new_chr_chars = list(chr_str)
-#     for i in range(start_closed, end_open):
-#         new_chr_chars[i] = 'n'
-#     # end for
-#     return ''.join(new_chr_chars)
-# # end def
-
 def make_curr_outdir_path(repeat_record, rate=None):
     if rate is None:
         base_name = 'default_{}'.format(repeat_record.id)
@@ -115,8 +103,8 @@ def make_curr_outdir_path(repeat_record, rate=None):
         base_name = 'default_{}_{:.2f}'.format(repeat_record.id, rate)
     # end def
     return os.path.join(
-        IN_PIPELINE_DATA_DIR,
-        'find_repeats_results',
+        IN_MOCK_REPEATS_DIRPATH,
+        'true_repeat_locations',
         base_name
     )
 # end def
@@ -154,7 +142,7 @@ plasmid_record = next(iter(tuple(
 )))
 
 chr_with_inserts_dir_path = os.path.join(
-    IN_PIPELINE_DATA_DIR,
+    IN_MOCK_REPEATS_DIRPATH,
     'chr_with_inserts'
 )
 if not os.path.isdir(chr_with_inserts_dir_path):
@@ -162,7 +150,7 @@ if not os.path.isdir(chr_with_inserts_dir_path):
 # end if
 
 test_combintations_fpath = os.path.join(
-    IN_PIPELINE_DATA_DIR,
+    IN_MOCK_REPEATS_DIRPATH,
     'test_combintations.tsv'
 )
 

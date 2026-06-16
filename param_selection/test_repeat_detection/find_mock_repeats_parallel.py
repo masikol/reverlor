@@ -12,11 +12,12 @@ from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
                                   TORALREPEATS_PATH
 
 
-PIPELINE_DATA_DIRPATH = os.path.abspath(sys.argv[1])
-REVERLOR_FIND_FPATH = os.path.abspath(sys.argv[2])
-FIND_REPEATS_OUT_ROOT_PATH = os.path.abspath(sys.argv[3])
-FINDER = sys.argv[4]
-NUM_THREADS = int(sys.argv[5]) if len(sys.argv) > 5 else 1
+IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[1])
+PIPELINE_DATA_DIRPATH = os.path.abspath(sys.argv[2])
+REVERLOR_FIND_FPATH = os.path.abspath(sys.argv[3])
+FIND_REPEATS_OUT_ROOT_PATH = os.path.abspath(sys.argv[4])
+FINDER = sys.argv[5]
+NUM_THREADS = int(sys.argv[6]) if len(sys.argv) > 5 else 1
 
 
 def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
@@ -83,11 +84,11 @@ def process_row(row_dict):
 
 
 test_combinations_fpath = os.path.join(
-    PIPELINE_DATA_DIRPATH,
+    IN_MOCK_REPEATS_DIRPATH,
     'test_combintations.tsv'
 )
 chr_with_inserts_dir_path = os.path.join(
-    PIPELINE_DATA_DIRPATH,
+    IN_MOCK_REPEATS_DIRPATH,
     'chr_with_inserts'
 )
 comb_df = pl.read_csv(test_combinations_fpath, separator='\t')

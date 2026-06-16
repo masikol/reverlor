@@ -2,10 +2,12 @@
 
 set -euo pipefail
 
-# FINDER='minimap2' # choice
-# FINDER='repeat-scout' # choice
-# FINDER='phraider' # choice
-FINDER='total-repeats' # choice
+FINDERS=(
+    minimap2
+    # repeat-scout
+    phraider
+    total-repeats
+)
 
 MASK_ALL_BUT_REPEATS=0 # choice
 # MASK_ALL_BUT_REPEATS=1 # choice
@@ -16,63 +18,77 @@ WORKDIR='/mnt/data/Max/repos/reverlor'
 reverlor_find_fpath="${WORKDIR}/reverlor/reverlor_find.py"
 genome_fasta="${WORKDIR}/param_selection/data/Mycoplasma_mycoides_JCVI-syn3.0.fasta"
 plasmid_fasta="${WORKDIR}/param_selection/data/pUC18.fasta"
+
 pipeline_dir="${WORKDIR}/param_selection/test_repeat_detection"
+mock_repeats_dir="${pipeline_dir}/mock_repeats"
+mock_repeats_file="${mock_repeats_dir}/mock_repeats.fasta"
+true_repeat_dir="${mock_repeats_dir}/true_repeat_locations"
 
-pipeline_workdir="${pipeline_dir}/workdir_${FINDER}"
-find_repeats_out_root="${pipeline_workdir}/find_repeats_results"
-find_repeats_out_merged="${find_repeats_out_root}/merged.tsv"
-mock_repeats_file="${pipeline_workdir}/mock_repeats.fasta"
-# TODO: remove?
-# test_combinations_file="${pipeline_workdir}/test_combintations.tsv"
+mkdir -pv "${mock_repeats_dir}"
 
-
-for dpath in "${pipeline_workdir}" "${find_repeats_out_root}"; do
-    mkdir -pv "${dpath}"
-done
 
 cd "${pipeline_dir}"
 
-echo "$(date) -- Running extract_mock_repeats.py"
-python3 extract_mock_repeats.py \
-    "${genome_fasta}" \
-    "${mock_repeats_file}"
+# echo "$(date) -- Running extract_mock_repeats.py"
+# python3 extract_mock_repeats.py \
+#     "${genome_fasta}" \
+#     "${mock_repeats_file}"
 
-echo "$(date) -- Running mutate_mock_repeats.py"
-python3 mutate_mock_repeats.py \
-    "${mock_repeats_file}" \
-    "${pipeline_workdir}"
+# echo "$(date) -- Running mutate_mock_repeats.py"
+# python3 mutate_mock_repeats.py \
+#     "${mock_repeats_file}" \
+#     "${mock_repeats_dir}"
 
 # # TODO: remove?
 # # echo "$(date) -- Running insert_mock_repeats.py"
 # # python3 insert_mock_repeats.py \
 # #     "${genome_fasta}" \
-# #     "${mock_repeats_file}" \
-# #     "${pipeline_workdir}" \
+# #     "${mock_repeats_dir}" \
 # #     "${MASK_ALL_BUT_REPEATS}"
 
-echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
-python3 insert_mock_repeats_cross_repl.py \
-    "${genome_fasta}" \
-    "${plasmid_fasta}" \
-    "${mock_repeats_file}" \
-    "${pipeline_workdir}"
+# echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
+# python3 insert_mock_repeats_cross_repl.py \
+#     "${genome_fasta}" \
+#     "${plasmid_fasta}" \
+#     "${mock_repeats_dir}"
 
-echo "$(date) -- Running find_mock_repeats_parallel.py"
-python3 find_mock_repeats_parallel.py \
-    "${pipeline_workdir}" \
-    "${reverlor_find_fpath}" \
-    "${find_repeats_out_root}" \
-    "${FINDER}" \
-    "${N_THREADS}"
 
-echo "$(date) -- Running merge_find_results.py"
-python3 merge_find_results.py \
-    "${find_repeats_out_root}" \
-    "${find_repeats_out_merged}"
+for finder in "${FINDERS[@]}"; do
 
-# python3 summarize_recall.py \
-#     "${find_repeats_out_merged}" \
-    
+    pipeline_workdir="${pipeline_dir}/workdir_${finder}"
+    detected_repeat_dir="${pipeline_workdir}/detected_repeat_locations"
+    find_repeats_out_merged="${pipeline_workdir}/repeat_detection_table_raw.tsv"
+    repeat_detection_table="${pipeline_workdir}/repeat_detection_table.tsv"
+
+    for dpath in "${pipeline_workdir}" "${detected_repeat_dir}"; do
+        mkdir -pv "${dpath}"
+    done
+
+    echo "  >>> FINDER: ${finder} >>>"
+
+    echo "$(date) -- Running find_mock_repeats_parallel.py"
+    python3 find_mock_repeats_parallel.py \
+        "${mock_repeats_dir}" \
+        "${pipeline_workdir}" \
+        "${reverlor_find_fpath}" \
+        "${detected_repeat_dir}" \
+        "${finder}" \
+        "${N_THREADS}"
+
+    echo "$(date) -- Running merge_find_results.py"
+    python3 merge_find_results.py \
+        "${detected_repeat_dir}" \
+        "${true_repeat_dir}" \
+        "${find_repeats_out_merged}"
+
+    echo "$(date) -- Running merge_find_results.py"
+    python3 make_repeat_detection_table.py \
+        "${find_repeats_out_merged}" \
+        "${repeat_detection_table}" \
+        "${finder}"
+
+    echo "  <<< FINDER: ${finder} <<<"
+done
 
 
 
