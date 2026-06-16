@@ -2,9 +2,10 @@
 
 set -euo pipefail
 
-# FINDER='repeatscout' # choice
-FINDER='phraider' # choice
 # FINDER='minimap2' # choice
+# FINDER='repeat-scout' # choice
+# FINDER='phraider' # choice
+FINDER='total-repeats' # choice
 
 MASK_ALL_BUT_REPEATS=0 # choice
 # MASK_ALL_BUT_REPEATS=1 # choice
@@ -41,7 +42,7 @@ python3 mutate_mock_repeats.py \
     "${mock_repeats_file}" \
     "${pipeline_workdir}"
 
-# TODO: remove?
+# # TODO: remove?
 # # echo "$(date) -- Running insert_mock_repeats.py"
 # # python3 insert_mock_repeats.py \
 # #     "${genome_fasta}" \
@@ -56,7 +57,7 @@ python3 insert_mock_repeats_cross_repl.py \
     "${mock_repeats_file}" \
     "${pipeline_workdir}"
 
-echo "$(date) -- Running find_mock_repeats.py"
+echo "$(date) -- Running find_mock_repeats_parallel.py"
 python3 find_mock_repeats_parallel.py \
     "${pipeline_workdir}" \
     "${reverlor_find_fpath}" \

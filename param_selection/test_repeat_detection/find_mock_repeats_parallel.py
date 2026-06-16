@@ -7,7 +7,9 @@ import multiprocessing
 
 import polars as pl
 
-from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, PHRAIDER_PATH
+from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
+                                  PHRAIDER_PATH, \
+                                  TORALREPEATS_PATH
 
 
 PIPELINE_DATA_DIRPATH = os.path.abspath(sys.argv[1])
@@ -31,6 +33,8 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         cmd += ['--phraider', PHRAIDER_PATH]
     elif FINDER == 'repeat-scout':
         cmd += ['--repeat-scout', REPEAT_SCOUT_DIR_PATH]
+    elif FINDER == 'total-repeats':
+        cmd += ['--total-repeats', TORALREPEATS_PATH]
     # end if
 
     pipe = sp.Popen(cmd, text=True, stdout=sp.PIPE, stderr=sp.PIPE)

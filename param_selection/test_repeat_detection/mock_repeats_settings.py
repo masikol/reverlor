@@ -8,7 +8,7 @@ INDEL_MAX_LEN = 5
 
 MOCK_REPEAT_LENGTHS = [127, 200, 500, 1000, 3000, 5000, 10000]
 
-N_REPEAT_REPLICATES = 100
+N_REPEAT_REPLICATES = 10
 
 RANDOM_SEED = 25
 
@@ -17,3 +17,5 @@ MAX_DETECT_ERROR_LED = 10 # bp
 REPEAT_SCOUT_DIR_PATH = '/mnt/data/Max/Soft/Repeat_Finders/RepeatScout-1.0.7'
 
 PHRAIDER_PATH = '/mnt/data/Max/Soft/Repeat_Finders/phRAIDER-master/phRAIDER/phRAIDER'
+
+TORALREPEATS_PATH = '/mnt/data/Max/Soft/Repeat_Finders/TotalRepeats-master_7435616/dist/TotalRepeats.jar'
