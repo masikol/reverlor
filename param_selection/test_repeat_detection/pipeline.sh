@@ -9,6 +9,11 @@ FINDERS=(
     total-repeats
 )
 
+MUTATION_TYPE='SNP' # choice
+# MUTATION_TYPE='SNP_INS' # choice
+# MUTATION_TYPE='SNP_DEL' # choice
+# MUTATION_TYPE='SNP_INDEL' # choice
+
 MASK_ALL_BUT_REPEATS=0 # choice
 # MASK_ALL_BUT_REPEATS=1 # choice
 
@@ -20,7 +25,7 @@ genome_fasta="${WORKDIR}/param_selection/data/Mycoplasma_mycoides_JCVI-syn3.0.fa
 plasmid_fasta="${WORKDIR}/param_selection/data/pUC18.fasta"
 
 pipeline_dir="${WORKDIR}/param_selection/test_repeat_detection"
-mock_repeats_dir="${pipeline_dir}/mock_repeats"
+mock_repeats_dir="${pipeline_dir}/mock_repeats_${MUTATION_TYPE}"
 mock_repeats_file="${mock_repeats_dir}/mock_repeats.fasta"
 true_repeat_dir="${mock_repeats_dir}/true_repeat_locations"
 
@@ -29,33 +34,34 @@ mkdir -pv "${mock_repeats_dir}"
 
 cd "${pipeline_dir}"
 
-# echo "$(date) -- Running extract_mock_repeats.py"
-# python3 extract_mock_repeats.py \
+echo "$(date) -- Running extract_mock_repeats.py"
+python3 extract_mock_repeats.py \
+    "${genome_fasta}" \
+    "${mock_repeats_file}"
+
+echo "$(date) -- Running mutate_mock_repeats.py"
+python3 mutate_mock_repeats.py \
+    "${mock_repeats_file}" \
+    "${mock_repeats_dir}" \
+    "${MUTATION_TYPE}"
+
+# TODO: remove?
+# echo "$(date) -- Running insert_mock_repeats.py"
+# python3 insert_mock_repeats.py \
 #     "${genome_fasta}" \
-#     "${mock_repeats_file}"
+#     "${mock_repeats_dir}" \
+#     "${MASK_ALL_BUT_REPEATS}"
 
-# echo "$(date) -- Running mutate_mock_repeats.py"
-# python3 mutate_mock_repeats.py \
-#     "${mock_repeats_file}" \
-#     "${mock_repeats_dir}"
-
-# # TODO: remove?
-# # echo "$(date) -- Running insert_mock_repeats.py"
-# # python3 insert_mock_repeats.py \
-# #     "${genome_fasta}" \
-# #     "${mock_repeats_dir}" \
-# #     "${MASK_ALL_BUT_REPEATS}"
-
-# echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
-# python3 insert_mock_repeats_cross_repl.py \
-#     "${genome_fasta}" \
-#     "${plasmid_fasta}" \
-#     "${mock_repeats_dir}"
+echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
+python3 insert_mock_repeats_cross_repl.py \
+    "${genome_fasta}" \
+    "${plasmid_fasta}" \
+    "${mock_repeats_dir}"
 
 
 for finder in "${FINDERS[@]}"; do
 
-    pipeline_workdir="${pipeline_dir}/workdir_${finder}"
+    pipeline_workdir="${pipeline_dir}/workdir_${finder}_${MUTATION_TYPE}"
     detected_repeat_dir="${pipeline_workdir}/detected_repeat_locations"
     find_repeats_out_merged="${pipeline_workdir}/repeat_detection_table_raw.tsv"
     repeat_detection_table="${pipeline_workdir}/repeat_detection_table.tsv"

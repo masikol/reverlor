@@ -15,6 +15,9 @@ from mock_repeats_settings import RATE_FROM, \
 
 infpath = os.path.abspath(sys.argv[1])
 outdir_path = os.path.abspath(sys.argv[2])
+mutation_type = sys.argv[3]
+
+assert mutation_type in ('SNP', 'SNP_INS', 'SNP_DEL', 'SNP_INDEL',)
 
 
 for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
@@ -37,14 +40,22 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
         '--quiet',
         'args',
         '--snp', rate_str,
-        # TOOD: do I really need it?
-        # '--insert', rate_str,
-        # '--deletion', rate_str,
-        # '--insertminlength', str(INDEL_MIN_LEN),
-        # '--insertmaxlength', str(INDEL_MAX_LEN),
-        # '--deletionminlength', str(INDEL_MIN_LEN),
-        # '--deletionmaxlength', str(INDEL_MAX_LEN),
     ])
+
+    if mutation_type == 'SNP_INS' or mutation_type == 'SNP_INDEL':
+        cmd += ' '.join([
+            '--insert', rate_str,
+            '--insertminlength', str(INDEL_MIN_LEN),
+            '--insertmaxlength', str(INDEL_MAX_LEN),
+        ])
+    # end if
+    if mutation_type == 'SNP_DEL' or mutation_type == 'SNP_INDEL':
+        cmd += ' '.join([
+            '--deletion', rate_str,
+            '--deletionminlength', str(INDEL_MIN_LEN),
+            '--deletionmaxlength', str(INDEL_MAX_LEN),
+        ])
+    # end if
 
     returncode = os.system(cmd)
     if returncode != 0:
