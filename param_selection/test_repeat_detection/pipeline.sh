@@ -3,10 +3,11 @@
 set -euo pipefail
 
 FINDERS=(
-    minimap2
+    # minimap2
     # repeat-scout
-    phraider
-    total-repeats
+    # phraider
+    # total-repeats
+    repeat-modeler
 )
 
 MUTATION_TYPE='SNP' # choice
@@ -17,9 +18,9 @@ MUTATION_TYPE='SNP' # choice
 MASK_ALL_BUT_REPEATS=0 # choice
 # MASK_ALL_BUT_REPEATS=1 # choice
 
-N_THREADS=6
+N_THREADS=10
 
-WORKDIR='/mnt/data/Max/repos/reverlor'
+WORKDIR='/home/cager-beast/Soft/reverlor'
 reverlor_find_fpath="${WORKDIR}/reverlor/reverlor_find.py"
 genome_fasta="${WORKDIR}/param_selection/data/Mycoplasma_mycoides_JCVI-syn3.0.fasta"
 plasmid_fasta="${WORKDIR}/param_selection/data/pUC18.fasta"
@@ -34,29 +35,29 @@ mkdir -pv "${mock_repeats_dir}"
 
 cd "${pipeline_dir}"
 
-echo "$(date) -- Running extract_mock_repeats.py"
-python3 extract_mock_repeats.py \
-    "${genome_fasta}" \
-    "${mock_repeats_file}"
-
-echo "$(date) -- Running mutate_mock_repeats.py"
-python3 mutate_mock_repeats.py \
-    "${mock_repeats_file}" \
-    "${mock_repeats_dir}" \
-    "${MUTATION_TYPE}"
-
-# TODO: remove?
-# echo "$(date) -- Running insert_mock_repeats.py"
-# python3 insert_mock_repeats.py \
+# echo "$(date) -- Running extract_mock_repeats.py"
+# python3 extract_mock_repeats.py \
 #     "${genome_fasta}" \
-#     "${mock_repeats_dir}" \
-#     "${MASK_ALL_BUT_REPEATS}"
+#     "${mock_repeats_file}"
 
-echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
-python3 insert_mock_repeats_cross_repl.py \
-    "${genome_fasta}" \
-    "${plasmid_fasta}" \
-    "${mock_repeats_dir}"
+# echo "$(date) -- Running mutate_mock_repeats.py"
+# python3 mutate_mock_repeats.py \
+#     "${mock_repeats_file}" \
+#     "${mock_repeats_dir}" \
+#     "${MUTATION_TYPE}"
+
+# # TODO: remove?
+# # echo "$(date) -- Running insert_mock_repeats.py"
+# # python3 insert_mock_repeats.py \
+# #     "${genome_fasta}" \
+# #     "${mock_repeats_dir}" \
+# #     "${MASK_ALL_BUT_REPEATS}"
+
+# echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
+# python3 insert_mock_repeats_cross_repl.py \
+#     "${genome_fasta}" \
+#     "${plasmid_fasta}" \
+#     "${mock_repeats_dir}"
 
 
 for finder in "${FINDERS[@]}"; do

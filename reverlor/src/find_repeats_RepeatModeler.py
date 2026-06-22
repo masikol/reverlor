@@ -155,10 +155,14 @@ def _find_rm_dir(work_dir: str) -> str:
 
 def _stk_to_bed(stk_fpath: str,
                 output_bed_fpath: str) -> None:
+    with open(output_bed_fpath, 'wt') as _:
+        pass
+    # end with
 
     if not os.path.exists(stk_fpath):
         sys.stderr.write('ERROR: final RepeatModeler file not found: `{}`\n'.format(stk_fpath))
-        sys.exit(1)
+        sys.stderr.write('Assuming that there are no repeats found')
+        return
     # end if
 
     record_sep = '//\n'

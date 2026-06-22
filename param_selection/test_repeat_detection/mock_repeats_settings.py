@@ -8,7 +8,7 @@ INDEL_MAX_LEN = 3
 
 MOCK_REPEAT_LENGTHS = [127, 200, 500, 1000, 3000, 5000, 10000]
 
-N_REPEAT_REPLICATES = 100
+N_REPEAT_REPLICATES = 10
 
 RANDOM_SEED = 25
 
@@ -20,4 +20,8 @@ PHRAIDER_PATH = '/mnt/data/Max/Soft/Repeat_Finders/phRAIDER-master/phRAIDER/phRA
 
 TORALREPEATS_PATH = '/home/cager-max/Soft/TotalRepeats-master_7435616/dist/TotalRepeats.jar'
 
-TMP_DIR_PATH = '/mnt/tmp_buff'
+REPEATMODELER_DIR_PATH = '/mnt/cager-beast/m.2.2/Soft/RepeatFinders/RepeatModeler-2.0.9'
+
+BEDTOOLS_PATH = '/home/cager-beast/Soft/bedtools2/bin/bedtools'
+
+TMP_DIR_PATH = '/mnt/cager-beast/m.2.2/tmp'

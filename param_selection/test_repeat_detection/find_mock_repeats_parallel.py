@@ -10,6 +10,8 @@ import polars as pl
 from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
                                   PHRAIDER_PATH, \
                                   TORALREPEATS_PATH, \
+                                  REPEATMODELER_DIR_PATH, \
+                                  BEDTOOLS_PATH, \
                                   TMP_DIR_PATH
 
 
@@ -28,6 +30,7 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         '--minimap-m', '65',
         '--min-repeat-len', '127',
         '--tmpdir', TMP_DIR_PATH,
+        '--bedtools', BEDTOOLS_PATH,
         '--threads', '1',
         input_fasta_fpath,
         out_dir_path,
@@ -39,6 +42,8 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         cmd += ['--repeat-scout', REPEAT_SCOUT_DIR_PATH]
     elif FINDER == 'total-repeats':
         cmd += ['--total-repeats', TORALREPEATS_PATH]
+    elif FINDER == 'repeat-modeler':
+        cmd += ['--repeat-modeler', REPEATMODELER_DIR_PATH]
     # end if
 
     pipe = sp.Popen(cmd, text=True, stdout=sp.PIPE, stderr=sp.PIPE)
