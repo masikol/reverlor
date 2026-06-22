@@ -16,7 +16,7 @@ MINIMAP_M_DEFAULT = 127
 MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
 DEFAULT_MIN_REPAT_LEN = 200
 DEFAULT_MIN_REPEAT_INTERVAL = 100
-FINDER_CHOICES = ('minimap2', 'repeat-scout', 'phraider', 'total-repeats', 'repeat-modeler')
+FINDER_CHOICES = ('minimap2', 'repeat-scout', 'phraider', 'total-repeats', 'repeat-modeler', 'grf')
 
 
 # >>> Helper functions >>>
@@ -113,6 +113,12 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Path to RepeatModeler directory containing BuildDatabase and RepeatModeler binaries'
     )
     parser.add_argument(
+        '--grf-intersperse',
+        type=str,
+        default=None,
+        help='Path to grf-intersperse executable'
+    )
+    parser.add_argument(
         '--java',
         type=str,
         default='java',
@@ -180,6 +186,8 @@ def _validate_args(args: argparse.Namespace) -> None:
         _validate_java(args.java)
     elif args.finder == 'repeat-modeler':
         _validate_repeat_modeler(args.repeat_modeler)
+    elif args.finder == 'grf':
+        _validate_grf_intersperse(args.grf_intersperse)
     else:
         _validate_minimap2(args.minimap2)
     # end if
@@ -244,6 +252,20 @@ def _validate_repeat_modeler(repeat_modeler_dir: Optional[str]) -> None:
             sys.exit(1)
         # end if
     # end for
+# end def
+
+def _validate_grf_intersperse(grf_fpath: Optional[str]) -> None:
+    if grf_fpath is None:
+        return
+    # end if
+    if not os.path.isfile(grf_fpath):
+        sys.stderr.write(f'Error: grf-intersperse executable `{grf_fpath}` does not exist\n')
+        sys.exit(1)
+    # end if
+    if not os.access(grf_fpath, os.X_OK):
+        sys.stderr.write(f'Error: grf-intersperse executable `{grf_fpath}` is not executable\n')
+        sys.exit(1)
+    # end if
 # end def
 
 def _validate_phraider(phraider_fpath: Optional[str]) -> None:
@@ -351,6 +373,7 @@ class FindArgs:
                  phraider_fpath: Optional[str] = None,
                  total_repeats_fpath: Optional[str] = None,
                  repeat_modeler_dir: Optional[str] = None,
+                 grf_intersperse_fpath: Optional[str] = None,
                  java_fpath: str = 'java',
                  keep_tmp: bool = False,
                  tmpdir: Optional[str] = None,
@@ -370,6 +393,7 @@ class FindArgs:
         self.phraider_fpath: str = phraider_fpath
         self.total_repeats_fpath: str = total_repeats_fpath
         self.repeat_modeler_dir: Optional[str] = repeat_modeler_dir
+        self.grf_intersperse_fpath: str = grf_intersperse_fpath
         self.java_fpath: str = java_fpath
         self.keep_tmp: bool = keep_tmp
         self.tmpdir: Optional[str] = tmpdir
@@ -429,6 +453,7 @@ class FindArgs:
             phraider_fpath=args.phraider,
             total_repeats_fpath=args.total_repeats,
             repeat_modeler_dir=args.repeat_modeler,
+            grf_intersperse_fpath=args.grf_intersperse,
             java_fpath=args.java,
             keep_tmp=args.keep_tmp,
             tmpdir=args.tmpdir,
