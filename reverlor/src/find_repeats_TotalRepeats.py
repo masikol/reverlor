@@ -65,8 +65,11 @@ def _run_extract_fasta(args: FindArgs,
         args.fasta_fpath,
         '-out={}'.format(tmp_dir),
         '-extract',
-        '-normal',
     ]
+
+    if args.threads == 1:
+        extract_cmd.append('normal')
+    # end if
 
     extract_proc = sp.run(extract_cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
     if extract_proc.returncode != 0:
@@ -92,8 +95,12 @@ def _run_detect_repeats(args: FindArgs,
         '-out={}'.format(tmp_dir_repeats),
         '-sln={}'.format(args.min_repeat_len),
         '-joint',
-        '-normal',
     ]
+
+    if args.threads == 1:
+        extract_cmd.append('normal')
+    # end if
+
     detect_proc = sp.run(detect_cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
     if detect_proc.returncode != 0:
         sys.stderr.write(

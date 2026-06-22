@@ -10,7 +10,7 @@ def merge_features(args: FindArgs,
                    output_bed_fpath: str) -> None:
 
     sort_cmd = [args.bedtools_fpath, 'sort', '-i', input_bed_fpath]
-    merge_cmd = [args.bedtools_fpath, 'merge', '-d', '100']
+    merge_cmd = [args.bedtools_fpath, 'merge', '-d', str(args.min_repeat_interval)]
 
     proc_sort = sp.Popen(
         sort_cmd,

@@ -35,6 +35,7 @@ from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 from src.find_repeats_RepeatScout import find_repeats as find_repeats_repeatscout
 from src.find_repeats_phRAIDER import find_repeats as find_repeats_phraider
 from src.find_repeats_TotalRepeats import find_repeats as find_repeats_total_repeats
+from src.find_repeats_RepeatModeler import find_repeats as find_repeats_repeat_modeler
 # <<<
 
 # >>> Functions >>>
@@ -47,6 +48,8 @@ def reverlor_find():
         repeats_bed = find_repeats_phraider(args)
     elif args.finder == 'total-repeats':
         repeats_bed = find_repeats_total_repeats(args)
+    elif args.finder == 'repeat-modeler':
+        repeats_bed = find_repeats_repeat_modeler(args)
     else:
         repeats_bed = find_repeats_minimap2(args)
     # end if

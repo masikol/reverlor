@@ -28,6 +28,7 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         '--minimap-m', '65',
         '--min-repeat-len', '127',
         '--tmpdir', TMP_DIR_PATH,
+        '--threads', '1',
         input_fasta_fpath,
         out_dir_path,
     ]

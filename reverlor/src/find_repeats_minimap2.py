@@ -44,7 +44,7 @@ def _create_raw_repeat_file(args: FindArgs,
         '-k', str(args.minimap_k),
         '-w', str(args.minimap_w),
         '-m', str(args.minimap_m),
-        '-t', '1',
+        '-t', str(args.threads),
         args.fasta_fpath,
         args.fasta_fpath,
     ]

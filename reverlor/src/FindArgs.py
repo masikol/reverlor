@@ -16,7 +16,7 @@ MINIMAP_M_DEFAULT = 127
 MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
 DEFAULT_MIN_REPAT_LEN = 200
 DEFAULT_MIN_REPEAT_INTERVAL = 100
-FINDER_CHOICES = ('minimap2', 'repeat-scout', 'phraider', 'total-repeats')
+FINDER_CHOICES = ('minimap2', 'repeat-scout', 'phraider', 'total-repeats', 'repeat-modeler')
 
 
 # >>> Helper functions >>>
@@ -107,6 +107,12 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Path to TotalRepeats.jar executable'
     )
     parser.add_argument(
+        '--repeat-modeler',
+        type=str,
+        default=None,
+        help='Path to RepeatModeler directory containing BuildDatabase and RepeatModeler binaries'
+    )
+    parser.add_argument(
         '--java',
         type=str,
         default='java',
@@ -123,6 +129,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=str,
         default=None,
         help='Temporary directory for TotalRepeats (default: system temp dir)'
+    )
+    parser.add_argument(
+        '-t',
+        '--threads',
+        type=int,
+        default=1,
+        help='number of CPU threads to use'
     )
 # end def
 
@@ -165,6 +178,8 @@ def _validate_args(args: argparse.Namespace) -> None:
     elif args.finder == 'total-repeats':
         _validate_total_repeats(args.total_repeats)
         _validate_java(args.java)
+    elif args.finder == 'repeat-modeler':
+        _validate_repeat_modeler(args.repeat_modeler)
     else:
         _validate_minimap2(args.minimap2)
     # end if
@@ -201,6 +216,31 @@ def _validate_repeat_scout(repeat_scout_dir: Optional[str]) -> None:
         fpath = os.path.join(repeat_scout_dir, name)
         if not os.path.isfile(fpath):
             sys.stderr.write(f'Error: `{name}` not found in `{repeat_scout_dir}`\n')
+            sys.exit(1)
+        # end if
+        if not os.access(fpath, os.X_OK):
+            sys.stderr.write(f'Error: `{name}` in `{repeat_scout_dir}` is not executable\n')
+            sys.exit(1)
+        # end if
+    # end for
+# end def
+
+def _validate_repeat_modeler(repeat_modeler_dir: Optional[str]) -> None:
+    if repeat_modeler_dir is None:
+        return
+    # end if
+    if not os.path.isdir(repeat_modeler_dir):
+        sys.stderr.write(f'Error: RepeatModeler directory `{repeat_modeler_dir}` does not exist\n')
+        sys.exit(1)
+    # end if
+    for name in ('BuildDatabase', 'RepeatModeler'):
+        fpath = os.path.join(repeat_modeler_dir, name)
+        if not os.path.isfile(fpath):
+            sys.stderr.write(f'Error: `{name}` not found in `{repeat_modeler_dir}`\n')
+            sys.exit(1)
+        # end if
+        if not os.access(fpath, os.X_OK):
+            sys.stderr.write(f'Error: `{name}` in `{repeat_modeler_dir}` is not executable\n')
             sys.exit(1)
         # end if
     # end for
@@ -267,14 +307,23 @@ def _validate_bedtools(executable_fpath: str) -> None:
         executable_fpath,
         '--version',
     ]
-    pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
+    try:
+        pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
+    except FileNotFoundError as err:
+        sys.stderr.write(
+            'Error: cannot find bedtools executable: `{}`\n'.format(executable_fpath)
+        )
+        sys.stderr.write('Please specify executable with --bedtools option\n')
+        sys.stderr.write('{}\n'.format(err))
+        sys.exit(1)
+    # end rry
 
     _, err = pipe.communicate()
     if pipe.returncode != 0:
         sys.stderr.write(
-            'Error: cannot test minimap2 executable: `{}`\n'.format(executable_fpath)
+            'Error: cannot test bedtools executable: `{}`\n'.format(executable_fpath)
         )
-        sys.stderr.write('Error: please specify executable with --bedtools option\n')
+        sys.stderr.write('Please specify executable with --bedtools option\n')
         sys.stderr.write('{}\n'.format(err))
         sys.exit(1)
     # end if
@@ -289,23 +338,27 @@ class FindArgs:
     def __init__(self,
                  fasta_fpath: str,
                  output_dir: str,
-                 min_repeat_len: int=200,
-                 minimap2_fpath: Optional[str]=MINIMAP2_DEFAULT_FPATH,
-                 bedtools_fpath: Optional[str]=BEDTOOLS_DEFAULT_FPATH,
-                 minimap_k: int=MINIMAP_K_DEFAULT,
-                 minimap_w: int=MINIMAP_W_DEFAULT,
-                 minimap_m: int=MINIMAP_M_DEFAULT,
-                 minimap_x: Optional[str]=None,
+                 min_repeat_len: int = 200,
+                 min_repeat_interval: int = 100,
+                 minimap2_fpath: Optional[str] = MINIMAP2_DEFAULT_FPATH,
+                 bedtools_fpath: Optional[str] = BEDTOOLS_DEFAULT_FPATH,
+                 minimap_k: int = MINIMAP_K_DEFAULT,
+                 minimap_w: int = MINIMAP_W_DEFAULT,
+                 minimap_m: int = MINIMAP_M_DEFAULT,
+                 minimap_x: Optional[str] = None,
                  finder: str='minimap2',
-                 repeat_scout_dir: Optional[str]=None,
-                 phraider_fpath: Optional[str]=None,
-                 total_repeats_fpath: Optional[str]=None,
-                 java_fpath: str='java',
-                 keep_tmp: bool=False,
-                 tmpdir: Optional[str]=None):
+                 repeat_scout_dir: Optional[str] = None,
+                 phraider_fpath: Optional[str] = None,
+                 total_repeats_fpath: Optional[str] = None,
+                 repeat_modeler_dir: Optional[str] = None,
+                 java_fpath: str = 'java',
+                 keep_tmp: bool = False,
+                 tmpdir: Optional[str] = None,
+                 threads: int = 1):
         self.fasta_fpath: str = fasta_fpath
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
+        self.min_repeat_interval: int = min_repeat_interval
         self.minimap2_fpath: Optional[str] = minimap2_fpath
         self.bedtools_fpath: Optional[str] = bedtools_fpath
         self.minimap_k: int = minimap_k
@@ -316,9 +369,11 @@ class FindArgs:
         self.repeat_scout_dir: Optional[str] = repeat_scout_dir
         self.phraider_fpath: str = phraider_fpath
         self.total_repeats_fpath: str = total_repeats_fpath
+        self.repeat_modeler_dir: Optional[str] = repeat_modeler_dir
         self.java_fpath: str = java_fpath
         self.keep_tmp: bool = keep_tmp
         self.tmpdir: Optional[str] = tmpdir
+        self.threads = threads
         if repeat_scout_dir is not None:
             self.build_lmer_table_fpath: str = os.path.join(
                 repeat_scout_dir,
@@ -331,6 +386,19 @@ class FindArgs:
         else:
             self.build_lmer_table_fpath: str = 'build_lmer_table'
             self.repeat_scout_fpath: str = 'RepeatScout'
+        # end if
+        if repeat_modeler_dir is not None:
+            self.build_database_fpath: str = os.path.join(
+                repeat_modeler_dir,
+                'BuildDatabase'
+            )
+            self.repeat_modeler_fpath: str = os.path.join(
+                repeat_modeler_dir,
+                'RepeatModeler'
+            )
+        else:
+            self.build_database_fpath: str = 'BuildDatabase'
+            self.repeat_modeler_fpath: str = 'RepeatModeler'
         # end if
     # end def
 
@@ -349,6 +417,7 @@ class FindArgs:
             fasta_fpath=args.fasta_fpath,
             output_dir=args.output_dir,
             min_repeat_len=args.min_repeat_len,
+            min_repeat_interval=args.min_repeat_interval,
             minimap2_fpath=args.minimap2,
             bedtools_fpath=args.bedtools,
             minimap_k=args.minimap_k,
@@ -359,9 +428,11 @@ class FindArgs:
             repeat_scout_dir=args.repeat_scout,
             phraider_fpath=args.phraider,
             total_repeats_fpath=args.total_repeats,
+            repeat_modeler_dir=args.repeat_modeler,
             java_fpath=args.java,
             keep_tmp=args.keep_tmp,
             tmpdir=args.tmpdir,
+            threads=args.threads,
         )
     # end def
 # end class
