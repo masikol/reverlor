@@ -54,7 +54,10 @@ def _create_raw_repeat_file(args: FindArgs,
         '-t', str(args.threads),
         '-s', seed_region_len,
     ]
-    grf_proc = sp.run(grf_cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
+
+    grf_proc = sp.Popen(grf_cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
+    out, err = grf_proc.communicate()
+
     if grf_proc.returncode != 0:
         sys.stderr.write(
             'ERROR: grf-intersperse failed with code {}\n'.format(
@@ -62,12 +65,14 @@ def _create_raw_repeat_file(args: FindArgs,
             )
         )
         sys.stderr.write('CMD: “{}”\n'.format(' '.join(grf_cmd)))
-        sys.stderr.write(grf_proc.stderr)
+        sys.stderr.write(err)
         sys.exit(1)
     # end if
 
+    no_repeats_found = 'found 0 candidate repeat groups' in out
+
     out_fpath = os.path.join(tmp_dir, 'interspersed_repeat.out')
-    _out_to_bed(out_fpath, output_bed_fpath)
+    _out_to_bed(out_fpath, no_repeats_found, output_bed_fpath)
 
     if not args.keep_tmp:
         shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -76,7 +81,15 @@ def _create_raw_repeat_file(args: FindArgs,
 
 
 def _out_to_bed(grf_out_fpath: str,
+                no_repeats_found: bool,
                 output_bed_fpath: str) -> None:
+    if no_repeats_found:
+        with open(output_bed_fpath, 'wt') as _:
+            pass
+        # end with
+        return
+    # end if
+
     sep = '\t'
 
     # .out lines starting with '>'

@@ -43,14 +43,14 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
     ])
 
     if mutation_type == 'SNP_INS' or mutation_type == 'SNP_INDEL':
-        cmd += ' '.join([
+        cmd += ' ' + ' '.join([
             '--insert', rate_str,
             '--insertminlength', str(INDEL_MIN_LEN),
             '--insertmaxlength', str(INDEL_MAX_LEN),
         ])
     # end if
     if mutation_type == 'SNP_DEL' or mutation_type == 'SNP_INDEL':
-        cmd += ' '.join([
+        cmd += ' ' + ' '.join([
             '--deletion', rate_str,
             '--deletionminlength', str(INDEL_MIN_LEN),
             '--deletionmaxlength', str(INDEL_MAX_LEN),

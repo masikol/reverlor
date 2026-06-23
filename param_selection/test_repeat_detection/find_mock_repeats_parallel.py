@@ -12,6 +12,7 @@ from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
                                   TORALREPEATS_PATH, \
                                   REPEATMODELER_DIR_PATH, \
                                   BEDTOOLS_PATH, \
+                                  GRF_INTERSPERSE_FPATH, \
                                   TMP_DIR_PATH
 
 
@@ -27,7 +28,6 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
     cmd = [
         'python3', REVERLOR_FIND_FPATH,
         '--finder', FINDER,
-        '--minimap-m', '65',
         '--min-repeat-len', '127',
         '--tmpdir', TMP_DIR_PATH,
         '--bedtools', BEDTOOLS_PATH,
@@ -36,7 +36,10 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         out_dir_path,
     ]
 
-    if FINDER == 'phraider':
+    if FINDER == 'minimap2':
+        cmd += ['--minimap', MINIMAP2_FPATH,]
+        cmd += ['--minimap-m', '65',]
+    elif FINDER == 'phraider':
         cmd += ['--phraider', PHRAIDER_PATH]
     elif FINDER == 'repeat-scout':
         cmd += ['--repeat-scout', REPEAT_SCOUT_DIR_PATH]
@@ -44,6 +47,8 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         cmd += ['--total-repeats', TORALREPEATS_PATH]
     elif FINDER == 'repeat-modeler':
         cmd += ['--repeat-modeler', REPEATMODELER_DIR_PATH]
+    elif FINDER == 'grf':
+        cmd += ['--grf-intersperse', GRF_INTERSPERSE_FPATH]
     # end if
 
     pipe = sp.Popen(cmd, text=True, stdout=sp.PIPE, stderr=sp.PIPE)

@@ -12,7 +12,7 @@ N_REPEAT_REPLICATES = 10
 
 RANDOM_SEED = 25
 
-MAX_DETECT_ERROR_LED = 10 # bp
+MINIMAP2_FPATH = '/home/cager-max/Soft/minimap2-2.30_x64-linux/minimap2'
 
 REPEAT_SCOUT_DIR_PATH = '/mnt/data/Max/Soft/Repeat_Finders/RepeatScout-1.0.7'
 
@@ -22,6 +22,8 @@ TORALREPEATS_PATH = '/home/cager-max/Soft/TotalRepeats-master_7435616/dist/Total
 
 REPEATMODELER_DIR_PATH = '/mnt/cager-beast/m.2.2/Soft/RepeatFinders/RepeatModeler-2.0.9'
 
-BEDTOOLS_PATH = '/home/cager-beast/Soft/bedtools2/bin/bedtools'
+GRF_INTERSPERSE_FPATH = '/home/cager-max/Soft/GenericRepeatFinder-1.0.2/bin/grf-intersperse'
 
-TMP_DIR_PATH = '/mnt/cager-beast/m.2.2/tmp'
+BEDTOOLS_PATH = '/home/cager-max/Soft/bedtools2/bin/bedtools'
+
+TMP_DIR_PATH = '/mnt/tmp_buff'
