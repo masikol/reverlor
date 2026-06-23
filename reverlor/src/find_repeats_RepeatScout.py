@@ -3,25 +3,29 @@
 import os
 import sys
 import subprocess as sp
+import tempfile
+
 from .FindArgs import FindArgs
 from .bed_lib import merge_features
-from .util import rm_files_if_exist
+from .util import rm_files_if_exist, rm_empty_dir_if_exists
 
 
 def find_repeats(args: FindArgs) -> str:
 
     os.makedirs(args.output_dir, exist_ok=True)
+    tmp_dir_path = tempfile.mkdtemp(dir=args.tmpdir)
 
-    raw_bed_fpath = os.path.join(args.output_dir, 'repeats_raw.bed')
+    raw_bed_fpath = os.path.join(tmp_dir_path, 'repeats_raw.bed')
     merged_bed_fpath = os.path.join(args.output_dir, 'repeats_final.bed')
 
     sys.stderr.write('INFO: Silently running RepearScout\n')
-    _create_raw_repeat_file(args, raw_bed_fpath)
+    _create_raw_repeat_file(args, tmp_dir_path, raw_bed_fpath)
     sys.stderr.write('INFO: Silently merging repeats\n')
     merge_features(args, raw_bed_fpath, merged_bed_fpath)
 
     if not args.keep_tmp:
         rm_files_if_exist(raw_bed_fpath)
+        rm_empty_dir_if_exists(tmp_dir_path)
     # end if
 
     sys.stderr.write('\n')
@@ -34,12 +38,13 @@ def find_repeats(args: FindArgs) -> str:
 
 
 def _create_raw_repeat_file(args: FindArgs,
+                            tmp_dir_path : str,
                             output_bed_fpath: str) -> None:
 
     basename = os.path.splitext(os.path.basename(args.fasta_fpath))[0]
-    freq_fpath = os.path.join(args.output_dir, f'{basename}.freq')
-    fasta_out_fpath = os.path.join(args.output_dir, f'{basename}.out')
-    range_fpath = os.path.join(args.output_dir, f'{basename}.range')
+    freq_fpath = os.path.join(tmp_dir_path, f'{basename}.freq')
+    fasta_out_fpath = os.path.join(tmp_dir_path, f'{basename}.out')
+    range_fpath = os.path.join(tmp_dir_path, f'{basename}.range')
 
     # Step 1: build_lmer_table
     _run_build_lmer_table(args, freq_fpath)

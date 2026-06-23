@@ -3,12 +3,12 @@
 set -euo pipefail
 
 FINDERS=(
-    # minimap2
-    repeat-scout
+    minimap2
+    # repeat-scout
     # phraider
     # total-repeats
     # repeat-modeler
-    grf
+    # grf
 )
 
 MUTATION_TYPE='SNP' # choice
