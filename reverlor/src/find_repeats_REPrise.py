@@ -116,7 +116,7 @@ def _fix_first_bed_column(args: FindArgs,
 
 def _find_matching_seq_id(chrom_value: str, seq_ids: list[str]) -> str:
     for seq_id in seq_ids:
-        if chrom_value.startswith(f'{seq_id}_'):
+        if chrom_value.startswith(f'{seq_id}_') or chrom_value.startswith(seq_id):
             return seq_id
         # end if
     # end for
