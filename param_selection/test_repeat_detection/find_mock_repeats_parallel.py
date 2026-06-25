@@ -13,6 +13,7 @@ from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
                                   REPEATMODELER_DIR_PATH, \
                                   BEDTOOLS_PATH, \
                                   GRF_INTERSPERSE_FPATH, \
+                                  REPRISE_FPATH, \
                                   TMP_DIR_PATH
 
 
@@ -49,6 +50,8 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
         cmd += ['--repeat-modeler', REPEATMODELER_DIR_PATH]
     elif FINDER == 'grf':
         cmd += ['--grf-intersperse', GRF_INTERSPERSE_FPATH]
+    elif FINDER == 'reprise':
+        cmd += ['--reprise', REPRISE_FPATH]
     # end if
 
     pipe = sp.Popen(cmd, text=True, stdout=sp.PIPE, stderr=sp.PIPE)

@@ -24,6 +24,8 @@ REPEATMODELER_DIR_PATH = '/mnt/cager-beast/m.2.2/Soft/RepeatFinders/RepeatModele
 
 GRF_INTERSPERSE_FPATH = '/home/cager-max/Soft/GenericRepeatFinder-1.0.2/bin/grf-intersperse'
 
+REPRISE_FPATH = '/mnt/data/Max/Soft/Repeat_Finders/REPrise-master_6c1d829/REPrise'
+
 BEDTOOLS_PATH = '/home/cager-max/Soft/bedtools2/bin/bedtools'
 
 TMP_DIR_PATH = '/mnt/tmp_buff'
