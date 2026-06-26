@@ -39,7 +39,7 @@ def make_mock_repat_fasta_fpath(rate=None):
     rate_str = '{:.2f}'.format(rate).replace('.', 'dot')
     out_basename = os.path.basename(IN_MOCK_REPEATS_FPATH).replace(
         '.fasta',
-        '_{}_ms.fasta'.format(rate_str)
+        '_{}.fasta'.format(rate_str)
     )
     return os.path.join(
         IN_MOCK_REPEATS_DIRPATH,

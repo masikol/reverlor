@@ -24,10 +24,12 @@ chr_record = next(iter(tuple(
 )))
 chr_len = len(chr_record)
 chr_str = str(chr_record.seq)
+copy_idx = '0'
+rate = '0.00'
 
 with open(outfpath, 'wt') as out_handle:
     for repeat_len in MOCK_REPEAT_LENGTHS:
-        for i in range(N_REPEAT_REPLICATES):
+        for replicate_idx in range(N_REPEAT_REPLICATES):
 
             start_coord = random.randint(0, (chr_len//2)-1)
             end_coord_open = start_coord + repeat_len
@@ -42,7 +44,7 @@ with open(outfpath, 'wt') as out_handle:
 
             out_record = SeqRecord(
                 seq,
-                id='mock_repeat_{}_{}'.format(repeat_len, i),
+                id='MR_l{}_r{}_c{}_t{}'.format(repeat_len, replicate_idx, copy_idx, rate),
                 description='start={} end={} strand={}; all zero-based, closed'.format(
                     start_coord,
                     end_coord_open - 1,

@@ -10,7 +10,9 @@ from mock_repeats_settings import RATE_FROM, \
                                   RATE_TO, \
                                   RATE_STEP, \
                                   INDEL_MIN_LEN, \
-                                  INDEL_MAX_LEN
+                                  INDEL_MAX_LEN, \
+                                  N_REPEAT_COPIES_TO_INSERT, \
+                                  TMP_DIR_PATH
 
 
 infpath = os.path.abspath(sys.argv[1])
@@ -20,18 +22,10 @@ mutation_type = sys.argv[3]
 assert mutation_type in ('SNP', 'SNP_INS', 'SNP_DEL', 'SNP_INDEL',)
 
 
-for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
-    in_base = os.path.basename(infpath).replace('.fasta', '')
-    rate_str = '{:.2f}'.format(rate)
-
-    print(rate_str)
-
-    out_base = os.path.join(
-        outdir_path,
-        '{}_{}'.format(in_base, rate_str.replace('.', 'dot'))
-    )
-
-    print(out_base)
+def run_mutation_simulator(infpath: str,
+                           rate_str: str,
+                           mutation_type: str,
+                           out_base: str) -> str:
 
     cmd = ' '.join([
         'mutation-simulator',
@@ -62,14 +56,59 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
         sys.stderr.write('Error running mutation-simulator')
         sys.exit(1)
     # end if
-# end for
 
-
-vcf_pattern = os.path.join(outdir_path, '*.vcf')
-for fpath in glob.iglob(vcf_pattern):
-    if os.path.isfile(fpath):
-        os.unlink(fpath)
+    rep_vcf = out_base + '_ms.vcf'
+    if os.path.isfile(rep_vcf):
+        os.unlink(rep_vcf)
     # end if
-# end if
+
+    out_fasta_fpath = out_base + '_ms.fasta'
+    return out_fasta_fpath
+# end def
+
+
+for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
+    in_base = os.path.basename(infpath).replace('.fasta', '')
+    rate_str = '{:.2f}'.format(rate)
+    rate_suffix = rate_str.replace('.', 'dot')
+
+    print(rate_str)
+
+    tmp_rep_fastas = []
+
+    out_fasta = os.path.join(
+        outdir_path,
+        '{}_{}.fasta'.format(in_base, rate_suffix)
+    )
+
+    with open(out_fasta, 'wt') as out_handle:
+
+        for copy_idx in range(1, N_REPEAT_COPIES_TO_INSERT + 1):
+            rep_base = os.path.join(
+                TMP_DIR_PATH,
+                '{}_{}_rep{}'.format(in_base, rate_suffix, copy_idx)
+            )
+
+            tmp_rep_fasta_fpath = run_mutation_simulator(
+                infpath,
+                rate_str,
+                mutation_type,
+                rep_base
+            )
+
+            with open(tmp_rep_fasta_fpath, 'rt') as in_handle:
+                for line in in_handle:
+                    if line.startswith('>'):
+                        line = line.replace('_c0_', '_c{}_'.format(copy_idx))
+                    # end if
+                    out_handle.write(line)
+                # end for
+                out_handle.write('\n')
+            # end with
+
+            os.unlink(tmp_rep_fasta_fpath)
+        # end for
+    # end with
+# end for
 
 sys.exit(0)
