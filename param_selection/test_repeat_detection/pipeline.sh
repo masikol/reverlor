@@ -38,22 +38,22 @@ mkdir -pv "${mock_repeats_dir}"
 
 cd "${pipeline_dir}"
 
-# echo "$(date) -- Running extract_mock_repeats.py"
-# python3 extract_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${mock_repeats_file}"
+echo "$(date) -- Running extract_mock_repeats.py"
+python3 extract_mock_repeats.py \
+    "${genome_fasta}" \
+    "${mock_repeats_file}"
 
-# echo "$(date) -- Running mutate_mock_repeats.py"
-# python3 mutate_mock_repeats.py \
-#     "${mock_repeats_file}" \
-#     "${mock_repeats_dir}" \
-#     "${MUTATION_TYPE}"
+echo "$(date) -- Running mutate_mock_repeats.py"
+python3 mutate_mock_repeats.py \
+    "${mock_repeats_file}" \
+    "${mock_repeats_dir}" \
+    "${MUTATION_TYPE}"
 
-# echo "$(date) -- Running insert_mock_repeats.py"
-# python3 insert_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${plasmid_fasta}" \
-#     "${mock_repeats_dir}"
+echo "$(date) -- Running insert_mock_repeats.py"
+python3 insert_mock_repeats.py \
+    "${genome_fasta}" \
+    "${plasmid_fasta}" \
+    "${mock_repeats_dir}"
 
 
 for finder in "${FINDERS[@]}"; do
@@ -69,27 +69,27 @@ for finder in "${FINDERS[@]}"; do
 
     echo "  >>> FINDER: ${finder} >>>"
 
-    # echo "$(date) -- Running find_mock_repeats_parallel.py"
-    # python3 find_mock_repeats_parallel.py \
-    #     "${mock_repeats_dir}" \
-    #     "${pipeline_workdir}" \
-    #     "${replicate_id_list}" \
-    #     "${reverlor_find_fpath}" \
-    #     "${detected_repeat_dir}" \
-    #     "${finder}" \
-    #     "${N_THREADS}"
+    echo "$(date) -- Running find_mock_repeats_parallel.py"
+    python3 find_mock_repeats_parallel.py \
+        "${mock_repeats_dir}" \
+        "${pipeline_workdir}" \
+        "${replicate_id_list}" \
+        "${reverlor_find_fpath}" \
+        "${detected_repeat_dir}" \
+        "${finder}" \
+        "${N_THREADS}"
 
-    # echo "$(date) -- Running merge_find_results.py"
-    # python3 merge_find_results.py \
-    #     "${detected_repeat_dir}" \
-    #     "${true_repeat_dir}" \
-    #     "${find_repeats_out_merged}"
+    echo "$(date) -- Running merge_find_results.py"
+    python3 merge_find_results.py \
+        "${detected_repeat_dir}" \
+        "${true_repeat_dir}" \
+        "${find_repeats_out_merged}"
 
-    # echo "$(date) -- Running make_repeat_detection_table.py"
-    # python3 make_repeat_detection_table.py \
-    #     "${find_repeats_out_merged}" \
-    #     "${repeat_detection_table}" \
-    #     "${finder}"
+    echo "$(date) -- Running make_repeat_detection_table.py"
+    python3 make_repeat_detection_table.py \
+        "${find_repeats_out_merged}" \
+        "${repeat_detection_table}" \
+        "${finder}"
 
     echo "  <<< FINDER: ${finder} <<<"
 done

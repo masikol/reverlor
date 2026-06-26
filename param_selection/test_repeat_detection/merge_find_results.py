@@ -14,11 +14,11 @@ out_fpath = os.path.abspath(sys.argv[3])
 
 
 IN_GLOB = sorted(glob.glob(
-    os.path.join(in_true_dir, 'default_mock_repeat_*')
+    os.path.join(in_true_dir, 'MR_l*_r*_t*.bed')
 ))
 
 FIND_RESULT_DIR_NAME_RE = re.compile(
-    r'^default_mock_repeat_([1-9][0-9]*)_([0-9]+)[_]?(0\.[0-9]+)?$'
+    r'^MR_l(\d+)_r(\d+)_t([0-9\.]+)$'
 )
 
 
@@ -39,22 +39,21 @@ with open(out_fpath, 'wt') as out_handle:
         ]))
     )
 
-    for in_dir_path in IN_GLOB:
+    for true_fpath in IN_GLOB:
+        replicate_id = os.path.basename(true_fpath.replace('.bed', ''))
         re_obj = re.match(
             FIND_RESULT_DIR_NAME_RE,
-            os.path.basename(in_dir_path)
+            replicate_id
         )
 
         repeat_len = str(re_obj.group(1))
-        repeat_idx = str(re_obj.group(2))
+        replicate_idx = str(re_obj.group(2))
         rate = str(re_obj.group(3))
-        if rate == 'None':
-            rate = '0.00'
-        # end if
 
-        dir_base_name = os.path.basename(in_dir_path)
-        true_fpath = os.path.join(in_true_dir, dir_base_name, 'repeats_final.true.bed')
-        pred_fpath = os.path.join(in_detected_dir, dir_base_name, 'repeats_final.bed')
+        # TODO: remove
+        # dir_base_name = os.path.basename(in_dir_path)
+        # true_fpath = os.path.join(in_true_dir, dir_base_name, 'repeats_final.true.bed')
+        pred_fpath = os.path.join(in_detected_dir, replicate_id, 'repeats_final.bed')
         out_zip = zip(
             [true_fpath, pred_fpath,],
             ['true', 'pred',],
@@ -77,7 +76,7 @@ with open(out_fpath, 'wt') as out_handle:
                 out_handle.write('{}\n'.format(sep.join([
                     bed_values[0],
                     repeat_len,
-                    repeat_idx,
+                    replicate_idx,
                     rate,
                     value_type,
                     bed_values[1],
