@@ -13,22 +13,25 @@ from Bio.SeqRecord import SeqRecord
 from mock_repeats_settings import RATE_FROM, \
                                   RATE_TO, \
                                   RATE_STEP, \
-                                  RANDOM_SEED
+                                  RANDOM_SEED, \
+                                  N_REPEAT_COPIES_TO_INSERT
 
 
 random.seed(RANDOM_SEED)
 
 REPEAT_COORDS_RE = re.compile(r'start=([1-9][0-9]*) end=([1-9][0-9]*)')
-SHOULDER_LEN = 200 # bp, around the original repeat
+RECORD_ID_RE = re.compile(r'MR_l(\d+)_r(\d+)_c(\d+)_t(\S+)')
 
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
-IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[2])
-MASK_ALL_BUT_REPEATS: bool = sys.argv[3] == '1'
+IN_PLASMID_FPATH = os.path.abspath(sys.argv[2])
+IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[3])
 
 IN_MOCK_REPEATS_FPATH = os.path.join(
     IN_MOCK_REPEATS_DIRPATH,
     'mock_repeats.fasta'
 )
+
+SHOULDER_LEN = 200
 
 
 
@@ -49,96 +52,53 @@ def make_mock_repat_fasta_fpath(rate=None):
 # end def
 
 def make_chr_with_insert_base_name(mock_repeat_seq_record, rate=None):
-    record_id = str(mock_repeat_seq_record.id)
-    if rate is None:
-        return '{}.fasta'.format(record_id)
-    # end if
-    return '{}_{:.2f}.fasta'.format(record_id, rate)
-# end def
+    basic_record_id = str(mock_repeat_seq_record.id)
 
-
-def insert_mock_repeat(chr_record,
-                       mock_repeat_seq_record,
-                       mask_all_but_repeats=False):
-    chr_len = len(chr_record)
-    chr_str = str(chr_record.seq)
-
-    repeat_descr = mock_repeat_seq_record.description
-    re_result = re.search(REPEAT_COORDS_RE, repeat_descr)
-
-    orig_start_coord_closed = int(re_result.group(1))
-    orig_end_coord_closed = int(re_result.group(2))
-
-    end_coord_broader = orig_end_coord_closed + SHOULDER_LEN
-    insert_start_coord_closed = random.randint(end_coord_broader, chr_len)
-    insert_end_coord_open = insert_start_coord_closed + len(mock_repeat_seq_record)
-
-    orig_end_coord_open = orig_end_coord_closed + 1
-    true_repeat_coords = (
-        (chr_record.id, orig_start_coord_closed, orig_end_coord_open),
-        (chr_record.id, insert_start_coord_closed, insert_end_coord_open),
-    )
-
-    repeat_str = str(mock_repeat_seq_record.seq)
-    end_coord_inserted_closed = insert_end_coord_open - 1
-    new_chr_str = chr_str[:insert_start_coord_closed] + repeat_str + chr_str[insert_start_coord_closed:]
-
-    if mask_all_but_repeats:
-        new_chr_str = mask_all_but_repeats(
-            new_chr_str,
-            orig_start_coord_closed,
-            orig_end_coord_closed,
-            insert_start_coord_closed,
-            end_coord_inserted_closed
-        )
+    rate_str = '{:.2f}'.format(0)
+    if rate is not None:
+        rate_str = '{:.2f}'.format(rate)
     # end if
 
-    new_chr_record = SeqRecord(
-        Seq(new_chr_str),
-        id=chr_record.id,
-        description=''
+    match = re.match(RECORD_ID_RE, basic_record_id)
+    l, r, c, t = match.group(1), match.group(2), match.group(3), match.group(4)
+    new_record_id = basic_record_id.replace(
+        '_c{}_t{}'.format(c, t),
+        '_t{}'.format(rate_str)
     )
 
-    strand = '+'
-    if 'strand=-' in repeat_descr:
-        strand = '-'
-    # end if
-
-    return new_chr_record, true_repeat_coords, strand
+    return '{}.fasta'.format(new_record_id)
 # end def
 
-def mask_all_but_repeats(chr_str,
-                         orig_start_coord_closed,
-                         orig_end_coord_closed,
-                         insert_start_coord_closed,
-                         end_coord_inserted_closed):
-    new_chr_chars = list(chr_str)
 
-    for i in range(0, orig_start_coord_closed):
-        new_chr_chars[i] = 'n'
+def group_repeat_records(repeat_records):
+    grouped_repeat_records = dict()
+    for rec in repeat_records:
+        match = RECORD_ID_RE.match(str(rec.id))
+        if match is None:
+            sys.stderr.write('ERROR: rec.id `{}` is not not of expected format')
+            sys.exit(1)
+        # end if
+        repeat_len = match.group(1)
+        replicate_idx = match.group(2)
+        group_key = (repeat_len, replicate_idx,)
+        if group_key not in grouped_repeat_records:
+            grouped_repeat_records[group_key] = {}
+        # end if
+        copy_idx = int(match.group(3))
+        grouped_repeat_records[group_key][copy_idx] = rec
     # end for
-    for i in range(orig_end_coord_closed+1, insert_start_coord_closed):
-        new_chr_chars[i] = 'n'
-    # end for
-    for i in range(end_coord_inserted_closed+1, len(new_chr_chars)):
-        new_chr_chars[i] = 'n'
-    # end for
-
-    return ''.join(new_chr_chars)
+    return grouped_repeat_records
 # end def
 
-def make_curr_outdir_path(repeat_record, rate=None):
-    if rate is None:
-        base_name = 'default_{}'.format(repeat_record.id)
-    else:
-        base_name = 'default_{}_{:.2f}'.format(repeat_record.id, rate)
-    # end def
-    return os.path.join(
-        IN_MOCK_REPEATS_DIRPATH,
-        'true_repeat_locations',
-        base_name
-    )
-# end def
+
+# TODO: remove
+# def make_curr_outdir_path(chr_with_insert_fpath):
+#     return os.path.join(
+#         IN_MOCK_REPEATS_DIRPATH,
+#         'true_repeat_locations',
+#         os.path.basename(chr_with_insert_fpath).replace('.fasta', '')
+#     )
+# # end def
 
 def write_true_coords(true_repeat_coords, strand, true_repeats_bed_fpath):
     sep ='\t'
@@ -160,11 +120,84 @@ def parse_repat_len_from_repeat_id(repeat_id):
 # end def
 
 
+def insert_mock_repeat(chr_record,
+                       seq_records_to_insert,
+                       target_chrom_id='replicon_1'):
+    # Use first record as representative for output naming
+    repeat_descr = seq_records_to_insert[0].description
+
+    re_result = re.search(REPEAT_COORDS_RE, repeat_descr)
+    orig_start_closed = int(re_result.group(1))
+    orig_end_closed   = int(re_result.group(2))
+
+    seqs = [str(rec.seq) for rec in seq_records_to_insert]
+    N = len(seqs)
+    orig_chr_len = len(chr_record)
+
+    # Generate N + 1 positions (N insertion + original) with spacing ≥ SHOULDER_LEN
+    coordinates_ok = False
+    while not coordinates_ok:
+        coords = [random.randint(0, orig_chr_len) for _ in range(N)]
+        coords.append(orig_start_closed)
+        coords.sort()
+
+        coordinates_ok = all(map(
+            lambda i: coords[i + 1] - coords[i] >= SHOULDER_LEN,
+            range(N)
+        ))
+    # end while
+
+    coords.remove(orig_start_closed)   # insertion positions only, still sorted
+
+    chr_str = str(chr_record.seq)
+    inserted_coords = []
+    repeat_len_cumsum = 0
+    orig_shift = 0
+
+    for i, pos in enumerate(coords):
+        seq = seqs[i]
+        repeat_len = len(seq)
+        adjusted_pos = pos + repeat_len_cumsum
+
+        if pos < orig_start_closed:
+            orig_shift += repeat_len
+        # end if
+
+        chr_str = chr_str[:adjusted_pos] + seq + chr_str[adjusted_pos:]
+        inserted_coords.append((adjusted_pos, adjusted_pos + repeat_len,))
+        repeat_len_cumsum += repeat_len
+    # end for
+
+    assert len(chr_str) == orig_chr_len + repeat_len_cumsum
+
+    orig_start_open = orig_start_closed + orig_shift
+    orig_end_open   = orig_end_closed + orig_shift + 1
+
+    new_record = SeqRecord(Seq(chr_str), id=target_chrom_id, description='')
+
+    true_coords = [('replicon_1', orig_start_open, orig_end_open)]
+    for start, end in inserted_coords:
+        true_coords.append((target_chrom_id, start, end))
+    # end for
+
+    strand = '+'
+    if 'strand=-' in repeat_descr:
+        strand = '-'
+    # end if
+
+    return new_record, true_coords, strand
+# end def
+
 
 # >>> Proceed >>>
 
 chr_record = next(iter(tuple(
     SeqIO.parse(IN_GENOME_FPATH, 'fasta')
+)))
+chr_record.id = 'replicon_1'
+
+plasmid_record = next(iter(tuple(
+    SeqIO.parse(IN_PLASMID_FPATH, 'fasta')
 )))
 
 chr_with_inserts_dir_path = os.path.join(
@@ -175,25 +208,24 @@ if not os.path.isdir(chr_with_inserts_dir_path):
     os.makedirs(chr_with_inserts_dir_path)
 # end if
 
-test_combintations_fpath = os.path.join(
+replicate_id_list_fpath = os.path.join(
     IN_MOCK_REPEATS_DIRPATH,
-    'test_combintations.tsv'
+    'replicate_id_list.txt'
 )
+
+true_repeat_coords_dirpath = os.path.join(
+    IN_MOCK_REPEATS_DIRPATH,
+    'true_repeat_locations',
+)
+if not os.path.isdir(true_repeat_coords_dirpath):
+    os.makedirs(true_repeat_coords_dirpath)
+# end if
 
 
 sep = '\t'
 rates = [None] + np.arange(RATE_FROM, RATE_TO+RATE_STEP, RATE_STEP).tolist()
 
-with open(test_combintations_fpath, 'wt') as combin_handle:
-
-    combin_handle.write('{}\n'.format(sep.join([
-        'repeat_len',
-        'repeat_id',
-        'rate',
-        'chr_with_insert_fname',
-        'true_repeats_bed_fname',
-        'pred_repeats_bed_fname',
-    ])))
+with open(replicate_id_list_fpath, 'wt') as list_handle:
 
     for rate in rates:
         repeat_fasta_fpath = make_mock_repat_fasta_fpath(rate)
@@ -201,13 +233,37 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
         repeat_records = tuple(
             SeqIO.parse(repeat_fasta_fpath, 'fasta')
         )
-        
-        for repeat_record in repeat_records:
-            chr_record_with_insert, true_repeat_coords, strand = insert_mock_repeat(
-                chr_record,
-                repeat_record,
-                MASK_ALL_BUT_REPEATS
+
+        grouped_repeat_records = group_repeat_records(repeat_records)
+
+        for group_key in sorted(grouped_repeat_records.keys()):
+            dict_of_copies = grouped_repeat_records[group_key]
+            sorted_copy_idxs = sorted(dict_of_copies.keys())
+
+            # First copy → replicon_2 (plasmid)
+            replicon_2_record_with_insert, true_coords_2, strand = insert_mock_repeat(
+                plasmid_record,
+                [dict_of_copies[i] for i in sorted_copy_idxs[:1]],
+                'replicon_2'
             )
+
+            # Remaining dict_of_copies → replicon_1 (genome)
+            if len(sorted_copy_idxs) > 1:
+                # strand is the same as at the first insert_mock_repeat() call
+                replicon_1_mod, true_coords_1, _ = insert_mock_repeat(
+                    chr_record,
+                    [dict_of_copies[i] for i in sorted_copy_idxs[1:]],
+                    'replicon_1'
+                )
+            else:
+                replicon_1_mod = chr_record
+                true_coords_1 = []
+            # end if
+
+            true_coords_all = true_coords_1 + true_coords_2
+
+            # Use first record as representative for output naming
+            repeat_record = dict_of_copies[sorted_copy_idxs[0]]
 
             chr_with_insert_fpath = os.path.join(
                 chr_with_inserts_dir_path,
@@ -216,41 +272,23 @@ with open(test_combintations_fpath, 'wt') as combin_handle:
 
             with open(chr_with_insert_fpath, 'wt') as tmp_out_handle:
                 SeqIO.write(
-                    [chr_record_with_insert,],
+                    [replicon_1_mod, replicon_2_record_with_insert,],
                     tmp_out_handle,
                     'fasta'
                 )
             # end with
 
-            curr_out_dir_path = make_curr_outdir_path(repeat_record, rate)
-            if not os.path.isdir(curr_out_dir_path):
-                os.makedirs(curr_out_dir_path)
-            # end if
-
-            pred_repeats_bed_fpath = os.path.join(
-                curr_out_dir_path,
-                'repeats_final.bed'
+            curr_replicate_id = os.path.basename(chr_with_insert_fpath).replace(
+                '.fasta',
+                ''
             )
+            list_handle.write('{}\n'.format(curr_replicate_id))
 
-            true_repeats_bed_fpath = os.path.join(
-                curr_out_dir_path,
-                os.path.basename(pred_repeats_bed_fpath).replace('.bed', '.true.bed')
+            true_coord_bed_fpath = os.path.join(
+                true_repeat_coords_dirpath,
+                '{}.bed'.format(curr_replicate_id)
             )
-            write_true_coords(true_repeat_coords, strand, true_repeats_bed_fpath)
-
-            rate_str = '0.00'
-            if rate is not None:
-                rate_str = '{:.2f}'.format(rate)
-            # end if
-
-            combin_handle.write('{}\n'.format(sep.join([
-                parse_repat_len_from_repeat_id(repeat_record.id),
-                str(repeat_record.id),
-                rate_str,
-                os.path.basename(chr_with_insert_fpath),
-                os.path.basename(true_repeats_bed_fpath),
-                os.path.basename(pred_repeats_bed_fpath),
-            ])))
+            write_true_coords(true_coords_all, strand, true_coord_bed_fpath)
         # end for
     # end for
 # end with

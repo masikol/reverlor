@@ -46,21 +46,13 @@ echo "$(date) -- Running mutate_mock_repeats.py"
 python3 mutate_mock_repeats.py \
     "${mock_repeats_file}" \
     "${mock_repeats_dir}" \
-    "${MUTATION_TYPE}" \
+    "${MUTATION_TYPE}"
 
-
-# TODO: remove?
-# echo "$(date) -- Running insert_mock_repeats.py"
-# python3 insert_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${mock_repeats_dir}" \
-#     "${MASK_ALL_BUT_REPEATS}"
-
-# echo "$(date) -- Running insert_mock_repeats_cross_repl.py"
-# python3 insert_mock_repeats_cross_repl.py \
-#     "${genome_fasta}" \
-#     "${plasmid_fasta}" \
-#     "${mock_repeats_dir}"
+echo "$(date) -- Running insert_mock_repeats.py"
+python3 insert_mock_repeats.py \
+    "${genome_fasta}" \
+    "${plasmid_fasta}" \
+    "${mock_repeats_dir}"
 
 
 # for finder in "${FINDERS[@]}"; do
