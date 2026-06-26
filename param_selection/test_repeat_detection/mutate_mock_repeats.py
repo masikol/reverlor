@@ -11,7 +11,6 @@ from mock_repeats_settings import RATE_FROM, \
                                   RATE_STEP, \
                                   INDEL_MIN_LEN, \
                                   INDEL_MAX_LEN, \
-                                  N_REPEAT_COPIES_TO_INSERT, \
                                   TMP_DIR_PATH
 
 
@@ -74,8 +73,6 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
 
     print(rate_str)
 
-    tmp_rep_fastas = []
-
     out_fasta = os.path.join(
         outdir_path,
         '{}_{}.fasta'.format(in_base, rate_suffix)
@@ -83,31 +80,32 @@ for rate in np.arange(RATE_FROM, RATE_TO + RATE_STEP, RATE_STEP):
 
     with open(out_fasta, 'wt') as out_handle:
 
-        for copy_idx in range(1, N_REPEAT_COPIES_TO_INSERT + 1):
-            rep_base = os.path.join(
-                TMP_DIR_PATH,
-                '{}_{}_rep{}'.format(in_base, rate_suffix, copy_idx)
-            )
+        rep_base = os.path.join(
+            TMP_DIR_PATH,
+            '{}_{}_repeats'.format(in_base, rate_suffix)
+        )
 
-            tmp_rep_fasta_fpath = run_mutation_simulator(
-                infpath,
-                rate_str,
-                mutation_type,
-                rep_base
-            )
+        tmp_rep_fasta_fpath = run_mutation_simulator(
+            infpath,
+            rate_str,
+            mutation_type,
+            rep_base
+        )
 
-            with open(tmp_rep_fasta_fpath, 'rt') as in_handle:
-                for line in in_handle:
-                    if line.startswith('>'):
-                        line = line.replace('_c0_', '_c{}_'.format(copy_idx))
-                    # end if
-                    out_handle.write(line)
-                # end for
-                out_handle.write('\n')
-            # end with
+        with open(tmp_rep_fasta_fpath, 'rt') as in_handle:
+            for line in in_handle:
+                if line.startswith('>'):
+                    line = line.replace(
+                        '_t0.00',
+                        '_t{:.2f}'.format(rate)
+                    )
+                # end if
+                out_handle.write(line)
+            # end for
+            out_handle.write('\n')
+        # end with
 
-            os.unlink(tmp_rep_fasta_fpath)
-        # end for
+        os.unlink(tmp_rep_fasta_fpath)
     # end with
 # end for
 

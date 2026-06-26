@@ -7,7 +7,8 @@ import multiprocessing
 
 import polars as pl
 
-from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
+from mock_repeats_settings import MINIMAP2_FPATH, \
+                                  REPEAT_SCOUT_DIR_PATH, \
                                   PHRAIDER_PATH, \
                                   TORALREPEATS_PATH, \
                                   REPEATMODELER_DIR_PATH, \
@@ -19,10 +20,11 @@ from mock_repeats_settings import REPEAT_SCOUT_DIR_PATH, \
 
 IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[1])
 PIPELINE_DATA_DIRPATH = os.path.abspath(sys.argv[2])
-REVERLOR_FIND_FPATH = os.path.abspath(sys.argv[3])
-FIND_REPEATS_OUT_ROOT_PATH = os.path.abspath(sys.argv[4])
-FINDER = sys.argv[5]
-NUM_THREADS = int(sys.argv[6]) if len(sys.argv) > 5 else 1
+REPLICATE_ID_LIST_FPATH = os.path.abspath(sys.argv[3])
+REVERLOR_FIND_FPATH = os.path.abspath(sys.argv[4])
+FIND_REPEATS_OUT_ROOT_PATH = os.path.abspath(sys.argv[5])
+FINDER = sys.argv[6]
+NUM_THREADS = int(sys.argv[7]) if len(sys.argv) > 6 else 1
 
 
 def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
@@ -38,7 +40,7 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
     ]
 
     if FINDER == 'minimap2':
-        cmd += ['--minimap', MINIMAP2_FPATH,]
+        cmd += ['--minimap2', MINIMAP2_FPATH,]
         cmd += ['--minimap-m', '65',]
     elif FINDER == 'phraider':
         cmd += ['--phraider', PHRAIDER_PATH]
@@ -66,52 +68,48 @@ def run_reverlor_find(input_fasta_fpath, finder, out_dir_path):
     return os.path.join(out_dir_path, 'repeats_final.bed')
 # end def
 
-def make_curr_outdir_path(repeat_record_id, rate=None):
-    if rate == 0.0:
-        base_name = 'default_{}'.format(repeat_record_id)
-    else:
-        base_name = 'default_{}_{:.2f}'.format(repeat_record_id, rate)
-    # end def
+def make_curr_outdir_path(replicate_id):
     return os.path.join(
         FIND_REPEATS_OUT_ROOT_PATH,
-        base_name
+        replicate_id
     )
 # end def
 
 
-def process_row(row_dict):
+def process_replicate(replicate_id):
     try:
         input_fasta_fpath = os.path.join(
             chr_with_inserts_dir_path,
-            row_dict['chr_with_insert_fname']
+            '{}.fasta'.format(replicate_id)
         )
         out_dir_path = make_curr_outdir_path(
-            row_dict['repeat_id'],
-            row_dict['rate']
+            replicate_id
         )
 
-        print(row_dict['repeat_id'], row_dict['rate'])
+        print(replicate_id)
 
         return run_reverlor_find(input_fasta_fpath, FINDER, out_dir_path)
     except Exception as exc:
-        return f'ERROR: {row_dict.get("repeat_id", "unknown")}: {exc}'
+        return f'ERROR: {replicate_id}: {exc}'
     # end try
 # end def
 
 
-test_combinations_fpath = os.path.join(
-    IN_MOCK_REPEATS_DIRPATH,
-    'test_combintations.tsv'
-)
+
 chr_with_inserts_dir_path = os.path.join(
     IN_MOCK_REPEATS_DIRPATH,
     'chr_with_inserts'
 )
-comb_df = pl.read_csv(test_combinations_fpath, separator='\t')
+with open(REPLICATE_ID_LIST_FPATH, 'rt') as in_handle:
+    all_replicate_ids = [
+        line.strip() for line in in_handle
+    ]
+# end with
 
 with multiprocessing.Pool(processes=NUM_THREADS) as pool:
-    results = pool.map(process_row, comb_df.to_dicts())
+    results = pool.map(process_replicate, all_replicate_ids)
 # end with
+
 # Reap zombies
 pool.close()
 pool.join()

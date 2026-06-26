@@ -14,6 +14,7 @@ from mock_repeats_settings import RATE_FROM, \
                                   RATE_TO, \
                                   RATE_STEP, \
                                   RANDOM_SEED, \
+                                  N_DESIRED_REPEAT_COPIES, \
                                   N_REPEAT_COPIES_TO_INSERT
 
 
@@ -31,7 +32,7 @@ IN_MOCK_REPEATS_FPATH = os.path.join(
     'mock_repeats.fasta'
 )
 
-SHOULDER_LEN = 200
+SHOULDER_LEN = 500
 
 
 
@@ -91,15 +92,6 @@ def group_repeat_records(repeat_records):
 # end def
 
 
-# TODO: remove
-# def make_curr_outdir_path(chr_with_insert_fpath):
-#     return os.path.join(
-#         IN_MOCK_REPEATS_DIRPATH,
-#         'true_repeat_locations',
-#         os.path.basename(chr_with_insert_fpath).replace('.fasta', '')
-#     )
-# # end def
-
 def write_true_coords(true_repeat_coords, strand, true_repeats_bed_fpath):
     sep ='\t'
     with open(true_repeats_bed_fpath, 'wt') as out_handle:
@@ -134,6 +126,12 @@ def insert_mock_repeat(chr_record,
     N = len(seqs)
     orig_chr_len = len(chr_record)
 
+    curr_shoulder_len = SHOULDER_LEN
+    if N > 1:
+        max_repeat_len = max(map(len, seqs))
+        curr_shoulder_len = SHOULDER_LEN + max_repeat_len
+    # end if
+
     # Generate N + 1 positions (N insertion + original) with spacing ≥ SHOULDER_LEN
     coordinates_ok = False
     while not coordinates_ok:
@@ -142,7 +140,7 @@ def insert_mock_repeat(chr_record,
         coords.sort()
 
         coordinates_ok = all(map(
-            lambda i: coords[i + 1] - coords[i] >= SHOULDER_LEN,
+            lambda i: coords[i + 1] - coords[i] >= curr_shoulder_len,
             range(N)
         ))
     # end while
@@ -228,6 +226,7 @@ rates = [None] + np.arange(RATE_FROM, RATE_TO+RATE_STEP, RATE_STEP).tolist()
 with open(replicate_id_list_fpath, 'wt') as list_handle:
 
     for rate in rates:
+        print('Doing repeats with rate = {}'.format(rate))
         repeat_fasta_fpath = make_mock_repat_fasta_fpath(rate)
 
         repeat_records = tuple(
@@ -241,26 +240,32 @@ with open(replicate_id_list_fpath, 'wt') as list_handle:
             sorted_copy_idxs = sorted(dict_of_copies.keys())
 
             # First copy → replicon_2 (plasmid)
+            records_to_insert = [dict_of_copies[i] for i in sorted_copy_idxs[:1]]
+            assert(len(records_to_insert)) == 1
             replicon_2_record_with_insert, true_coords_2, strand = insert_mock_repeat(
                 plasmid_record,
-                [dict_of_copies[i] for i in sorted_copy_idxs[:1]],
+                records_to_insert,
                 'replicon_2'
             )
+            # Remove original coords: they might be modified
+            #   by the later insert_mock_repeat() call
+            true_coords_2 = true_coords_2[1:]
 
             # Remaining dict_of_copies → replicon_1 (genome)
-            if len(sorted_copy_idxs) > 1:
+            if N_REPEAT_COPIES_TO_INSERT > 1:
                 # strand is the same as at the first insert_mock_repeat() call
-                replicon_1_mod, true_coords_1, _ = insert_mock_repeat(
+                records_to_insert = [dict_of_copies[i] for i in sorted_copy_idxs[1:]]
+                assert(len(records_to_insert)) == N_REPEAT_COPIES_TO_INSERT - 1
+                replicon_1_record_with_insert, true_coords_1, _ = insert_mock_repeat(
                     chr_record,
-                    [dict_of_copies[i] for i in sorted_copy_idxs[1:]],
+                    records_to_insert,
                     'replicon_1'
                 )
             else:
-                replicon_1_mod = chr_record
+                replicon_1_record_with_insert = chr_record
                 true_coords_1 = []
             # end if
 
-            true_coords_all = true_coords_1 + true_coords_2
 
             # Use first record as representative for output naming
             repeat_record = dict_of_copies[sorted_copy_idxs[0]]
@@ -272,7 +277,7 @@ with open(replicate_id_list_fpath, 'wt') as list_handle:
 
             with open(chr_with_insert_fpath, 'wt') as tmp_out_handle:
                 SeqIO.write(
-                    [replicon_1_mod, replicon_2_record_with_insert,],
+                    [replicon_1_record_with_insert, replicon_2_record_with_insert,],
                     tmp_out_handle,
                     'fasta'
                 )
@@ -283,6 +288,10 @@ with open(replicate_id_list_fpath, 'wt') as list_handle:
                 ''
             )
             list_handle.write('{}\n'.format(curr_replicate_id))
+
+            true_coords_all = true_coords_1 + true_coords_2
+            assert len(true_coords_all) == N_DESIRED_REPEAT_COPIES, \
+                '{} != {}'.format(len(true_coords_all), N_DESIRED_REPEAT_COPIES)
 
             true_coord_bed_fpath = os.path.join(
                 true_repeat_coords_dirpath,
