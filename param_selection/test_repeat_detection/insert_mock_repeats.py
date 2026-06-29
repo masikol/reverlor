@@ -136,19 +136,25 @@ def insert_mock_repeat(chr_record,
     coordinates_ok = False
     while not coordinates_ok:
         coords = [random.randint(0, orig_chr_len) for _ in range(N)]
-        coords.append(orig_start_closed)
         coords.sort()
 
         coordinates_ok = all(map(
-            lambda i: coords[i + 1] - coords[i] >= curr_shoulder_len,
-            range(N)
+            lambda coord: coord <= (orig_start_closed - curr_shoulder_len) \
+                      or  coord >= (orig_end_closed   + curr_shoulder_len),
+            coords
         ))
+        if N > 1:
+            coordinates_ok = coordinates_ok and all(map(
+                lambda i: coords[i + 1] - coords[i] >= curr_shoulder_len,
+                range(N)
+            ))
+        # end if
     # end while
 
-    coords.remove(orig_start_closed)   # insertion positions only, still sorted
-
-    # TODO: chr_str.lower()
     chr_str = str(chr_record.seq)
+    orig_end_open = orig_end_closed + 1
+    chr_str = mask_region(chr_str, orig_start_closed, orig_end_open)
+
     inserted_coords = []
     repeat_len_cumsum = 0
     orig_shift = 0
@@ -162,19 +168,18 @@ def insert_mock_repeat(chr_record,
             orig_shift += repeat_len
         # end if
 
-        chr_str = chr_str[:adjusted_pos] + seq + chr_str[adjusted_pos:]
+        chr_str = chr_str[:adjusted_pos] + seq.lower() + chr_str[adjusted_pos:]
         inserted_coords.append((adjusted_pos, adjusted_pos + repeat_len,))
         repeat_len_cumsum += repeat_len
     # end for
 
     assert len(chr_str) == orig_chr_len + repeat_len_cumsum
 
-    orig_start_open = orig_start_closed + orig_shift
-    orig_end_open   = orig_end_closed + orig_shift + 1
-
     new_record = SeqRecord(Seq(chr_str), id=target_chrom_id, description='')
 
-    true_coords = [('replicon_1', orig_start_open, orig_end_open)]
+    orig_end_open   = orig_end_closed + orig_shift + 1
+
+    true_coords = [('replicon_1', orig_start_closed, orig_end_open)]
     for start, end in inserted_coords:
         true_coords.append((target_chrom_id, start, end))
     # end for
@@ -192,6 +197,14 @@ def get_orig_closed_coords(orig_seq_description: str) -> tuple[int, int]:
     orig_start_closed = int(re_result.group(1))
     orig_end_closed   = int(re_result.group(2))
     return orig_start_closed, orig_end_closed
+# end def
+
+def mask_region(chr_str: str, start_closed: int, end_open: int) -> str:
+    chr_len_before = len(chr_str)
+    region_lower_seq = chr_str[start_closed : end_open].lower()
+    chr_str = chr_str[:start_closed] + region_lower_seq + chr_str[end_open:]
+    assert len(chr_str) == chr_len_before
+    return chr_str
 # end def
 
 # >>> Proceed >>>
@@ -272,9 +285,8 @@ with open(replicate_id_list_fpath, 'wt') as list_handle:
                 replicon_1_record_with_insert = chr_record
                 repeat_descr = dict_of_copies[sorted_copy_idxs[0]].description
                 orig_start_closed, orig_end_closed = get_orig_closed_coords(repeat_descr)
-                orig_start_open = orig_start_closed
                 orig_end_open = orig_end_closed + 1
-                true_coords_1 = [('replicon_1', orig_start_open, orig_end_open,)]
+                true_coords_1 = [('replicon_1', orig_start_closed, orig_end_open,)]
             # end if
 
             # Use first record as representative for output naming

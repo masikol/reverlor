@@ -20,7 +20,7 @@ MUTATION_TYPE='SNP' # choice
 # MUTATION_TYPE='SNP_DEL' # choice
 # MUTATION_TYPE='SNP_INDEL' # choice
 
-N_DESIRED_REPEAT_COPIES=2
+N_DESIRED_REPEAT_COPIES=3
 
 N_THREADS=6
 
@@ -45,17 +45,17 @@ mkdir -pv "${mock_repeats_dir}"
 
 cd "${pipeline_dir}"
 
-# echo "$(date) -- Running extract_mock_repeats.py"
-# python3 extract_mock_repeats.py \
-#     "${genome_fasta}" \
-#     "${mock_repeats_file}" \
-#     "${N_DESIRED_REPEAT_COPIES}"
+echo "$(date) -- Running extract_mock_repeats.py"
+python3 extract_mock_repeats.py \
+    "${genome_fasta}" \
+    "${mock_repeats_file}" \
+    "${N_DESIRED_REPEAT_COPIES}"
 
-# echo "$(date) -- Running mutate_mock_repeats.py"
-# python3 mutate_mock_repeats.py \
-#     "${mock_repeats_file}" \
-#     "${mock_repeats_dir}" \
-#     "${MUTATION_TYPE}"
+echo "$(date) -- Running mutate_mock_repeats.py"
+python3 mutate_mock_repeats.py \
+    "${mock_repeats_file}" \
+    "${mock_repeats_dir}" \
+    "${MUTATION_TYPE}"
 
 echo "$(date) -- Running insert_mock_repeats.py"
 python3 insert_mock_repeats.py \
