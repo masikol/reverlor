@@ -10,13 +10,16 @@ from Bio.SeqRecord import SeqRecord
 
 from mock_repeats_settings import MOCK_REPEAT_LENGTHS, \
                                   N_REPEAT_REPLICATES, \
-                                  RANDOM_SEED, \
-                                  N_REPEAT_COPIES_TO_INSERT
+                                  RANDOM_SEED
 
 random.seed(RANDOM_SEED)
 
 infpath = os.path.abspath(sys.argv[1])
 outfpath = os.path.abspath(sys.argv[2])
+N_DESIRED_REPEAT_COPIES = int(sys.argv[3])
+
+assert N_DESIRED_REPEAT_COPIES > 1
+N_REPEAT_COPIES_TO_INSERT = N_DESIRED_REPEAT_COPIES - 1
 
 SAFE_SHOULDER_LEN = 500 # bp
 

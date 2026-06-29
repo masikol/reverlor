@@ -19,11 +19,11 @@ print(df.head())
 
 df = df.with_columns(
     (
-        pl.col('repeat_len').cast(pl.String) \
+        'MR_l' + pl.col('repeat_len').cast(pl.String) \
         + '_' \
-        + pl.col('repeat_idx').cast(pl.String) \
+        + 'r' + pl.col('replicate_idx').cast(pl.String) \
         + '_' \
-        + pl.col('rate').cast(pl.String) \
+        + 't' + pl.col('rate').cast(pl.String) \
     ).alias('repeat_id')
 )
 
@@ -117,7 +117,7 @@ repeat_detect_df = repeat_detect_df.join(
         'pred_end_coord',
         'repeat_detected',
         'repeat_len',
-        'repeat_idx',
+        'replicate_idx',
         'rate'
     )
 ).unique()

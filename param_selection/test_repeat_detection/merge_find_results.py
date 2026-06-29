@@ -30,7 +30,7 @@ with open(out_fpath, 'wt') as out_handle:
         '{}\n'.format(sep.join([
             'chr',
             'repeat_len',
-            'repeat_idx',
+            'replicate_idx',
             'rate',
             'value_type',
             'start_coord',
@@ -50,9 +50,6 @@ with open(out_fpath, 'wt') as out_handle:
         replicate_idx = str(re_obj.group(2))
         rate = str(re_obj.group(3))
 
-        # TODO: remove
-        # dir_base_name = os.path.basename(in_dir_path)
-        # true_fpath = os.path.join(in_true_dir, dir_base_name, 'repeats_final.true.bed')
         pred_fpath = os.path.join(in_detected_dir, replicate_id, 'repeats_final.bed')
         out_zip = zip(
             [true_fpath, pred_fpath,],

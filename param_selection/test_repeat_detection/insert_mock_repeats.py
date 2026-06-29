@@ -13,9 +13,7 @@ from Bio.SeqRecord import SeqRecord
 from mock_repeats_settings import RATE_FROM, \
                                   RATE_TO, \
                                   RATE_STEP, \
-                                  RANDOM_SEED, \
-                                  N_DESIRED_REPEAT_COPIES, \
-                                  N_REPEAT_COPIES_TO_INSERT
+                                  RANDOM_SEED
 
 
 random.seed(RANDOM_SEED)
@@ -26,6 +24,10 @@ RECORD_ID_RE = re.compile(r'MR_l(\d+)_r(\d+)_c(\d+)_t(\S+)')
 IN_GENOME_FPATH = os.path.abspath(sys.argv[1])
 IN_PLASMID_FPATH = os.path.abspath(sys.argv[2])
 IN_MOCK_REPEATS_DIRPATH = os.path.abspath(sys.argv[3])
+N_DESIRED_REPEAT_COPIES = int(sys.argv[4])
+
+assert N_DESIRED_REPEAT_COPIES > 1
+N_REPEAT_COPIES_TO_INSERT = N_DESIRED_REPEAT_COPIES - 1
 
 IN_MOCK_REPEATS_FPATH = os.path.join(
     IN_MOCK_REPEATS_DIRPATH,
@@ -118,9 +120,7 @@ def insert_mock_repeat(chr_record,
     # Use first record as representative for output naming
     repeat_descr = seq_records_to_insert[0].description
 
-    re_result = re.search(REPEAT_COORDS_RE, repeat_descr)
-    orig_start_closed = int(re_result.group(1))
-    orig_end_closed   = int(re_result.group(2))
+    orig_start_closed, orig_end_closed = get_orig_closed_coords(repeat_descr)
 
     seqs = [str(rec.seq) for rec in seq_records_to_insert]
     N = len(seqs)
@@ -147,6 +147,7 @@ def insert_mock_repeat(chr_record,
 
     coords.remove(orig_start_closed)   # insertion positions only, still sorted
 
+    # TODO: chr_str.lower()
     chr_str = str(chr_record.seq)
     inserted_coords = []
     repeat_len_cumsum = 0
@@ -186,6 +187,12 @@ def insert_mock_repeat(chr_record,
     return new_record, true_coords, strand
 # end def
 
+def get_orig_closed_coords(orig_seq_description: str) -> tuple[int, int]:
+    re_result = re.search(REPEAT_COORDS_RE, orig_seq_description)
+    orig_start_closed = int(re_result.group(1))
+    orig_end_closed   = int(re_result.group(2))
+    return orig_start_closed, orig_end_closed
+# end def
 
 # >>> Proceed >>>
 
@@ -263,9 +270,12 @@ with open(replicate_id_list_fpath, 'wt') as list_handle:
                 )
             else:
                 replicon_1_record_with_insert = chr_record
-                true_coords_1 = []
+                repeat_descr = dict_of_copies[sorted_copy_idxs[0]].description
+                orig_start_closed, orig_end_closed = get_orig_closed_coords(repeat_descr)
+                orig_start_open = orig_start_closed
+                orig_end_open = orig_end_closed + 1
+                true_coords_1 = [('replicon_1', orig_start_open, orig_end_open,)]
             # end if
-
 
             # Use first record as representative for output naming
             repeat_record = dict_of_copies[sorted_copy_idxs[0]]
