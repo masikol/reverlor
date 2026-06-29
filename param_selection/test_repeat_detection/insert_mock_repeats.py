@@ -177,7 +177,8 @@ def insert_mock_repeat(chr_record,
 
     new_record = SeqRecord(Seq(chr_str), id=target_chrom_id, description='')
 
-    orig_end_open   = orig_end_closed + orig_shift + 1
+    orig_start_closed = orig_end_closed + orig_shift
+    orig_end_open     = orig_end_closed + orig_shift + 1
 
     true_coords = [('replicon_1', orig_start_closed, orig_end_open)]
     for start, end in inserted_coords:
