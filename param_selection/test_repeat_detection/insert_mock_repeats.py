@@ -146,7 +146,7 @@ def insert_mock_repeat(chr_record,
         if N > 1:
             coordinates_ok = coordinates_ok and all(map(
                 lambda i: coords[i + 1] - coords[i] >= curr_shoulder_len,
-                range(N)
+                range(N - 1)
             ))
         # end if
     # end while

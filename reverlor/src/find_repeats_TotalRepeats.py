@@ -98,7 +98,7 @@ def _run_detect_repeats(args: FindArgs,
     ]
 
     if args.threads == 1:
-        extract_cmd.append('normal')
+        detect_cmd.append('normal')
     # end if
 
     detect_proc = sp.run(detect_cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)

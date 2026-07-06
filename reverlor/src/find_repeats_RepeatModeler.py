@@ -48,19 +48,19 @@ def find_repeats(args: FindArgs) -> str:
 def _create_raw_repeat_file(args: FindArgs,
                             output_bed_fpath: str) -> None:
 
-    basename = os.path.splitext(os.path.basename(args.fasta_fpath))[0]
-
     remodeler_db_dir = tempfile.mkdtemp(dir=args.tmpdir)
     remodeler_result_dir = tempfile.mkdtemp(dir=args.tmpdir)
 
     sys.stderr.write(f'INFO: RepeatModeler database dir: `{remodeler_db_dir}`\n')
     sys.stderr.write(f'INFO: RepeatModeler work dir: `{remodeler_result_dir}`\n')
 
+    db_name = 'blastBD'
+
     starting_dirpath = os.getcwd()
     os.chdir(remodeler_db_dir)
-    _run_build_database(args, basename, remodeler_db_dir)
+    _run_build_database(args, db_name, remodeler_db_dir)
     os.chdir(remodeler_result_dir)
-    _run_repeat_modeler(args, basename, remodeler_db_dir, remodeler_result_dir)
+    _run_repeat_modeler(args, db_name, remodeler_db_dir, remodeler_result_dir)
     os.chdir(starting_dirpath)
 
     rm_out_dir = _find_rm_dir(remodeler_result_dir)
