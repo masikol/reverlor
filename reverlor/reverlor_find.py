@@ -32,33 +32,13 @@ if sys.version_info.major < 3:
 # >>> Import functions >>>
 from src.FindArgs import FindArgs
 from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
-from src.find_repeats_RepeatScout import find_repeats as find_repeats_repeatscout
-from src.find_repeats_phRAIDER import find_repeats as find_repeats_phraider
-from src.find_repeats_TotalRepeats import find_repeats as find_repeats_total_repeats
-from src.find_repeats_RepeatModeler import find_repeats as find_repeats_repeat_modeler
-from src.find_repeats_GRF import find_repeats as find_repeats_grf
-from src.find_repeats_REPrise import find_repeats as find_repeats_reprise
 # <<<
 
 # >>> Functions >>>
 
 def reverlor_find():
     args = FindArgs.parse_args()
-    if args.finder == 'repeat-scout':
-        repeats_bed = find_repeats_repeatscout(args)
-    elif args.finder == 'phraider':
-        repeats_bed = find_repeats_phraider(args)
-    elif args.finder == 'total-repeats':
-        repeats_bed = find_repeats_total_repeats(args)
-    elif args.finder == 'repeat-modeler':
-        repeats_bed = find_repeats_repeat_modeler(args)
-    elif args.finder == 'grf':
-        repeats_bed = find_repeats_grf(args)
-    elif args.finder == 'reprise':
-        repeats_bed = find_repeats_reprise(args)
-    else:
-        repeats_bed = find_repeats_minimap2(args)
-    # end if
+    repeats_bed = find_repeats_minimap2(args)
 # end def
 
 # <<<
