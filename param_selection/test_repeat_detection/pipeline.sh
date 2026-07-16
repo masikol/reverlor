@@ -24,18 +24,20 @@ N_DESIRED_REPEAT_COPIES=3
 
 N_THREADS=6
 
-WORKDIR='/mnt/data/Max/repos/reverlor'
-reverlor_find_fpath="${WORKDIR}/reverlor/reverlor_find.py"
+REPO_DIR='/mnt/data/Max/repos/reverlor'
+WORKDIR='/mnt/data/Max/max_disser/work_dirs/reverlor'
 
 # <<< Configuration <<<
 
 
-genome_fasta="${WORKDIR}/param_selection/data/Mycoplasma_mycoides_JCVI-syn3.0.fasta"
-plasmid_fasta="${WORKDIR}/param_selection/data/pUC18.fasta"
+reverlor_find_fpath="${REPO_DIR}/param_selection/reverlor_test_version/reverlor_find.py"
+genome_fasta="${WORKDIR}/data/Mycoplasma_mycoides_JCVI-syn3.0.fasta"
+plasmid_fasta="${WORKDIR}/data/pUC18.fasta"
 
-pipeline_dir="${WORKDIR}/param_selection/test_repeat_detection"
-mock_repeats_dir="${pipeline_dir}/mock_repeats_${MUTATION_TYPE}_${N_DESIRED_REPEAT_COPIES}copies"
-workdir_root="${pipeline_dir}/workdirs_${N_DESIRED_REPEAT_COPIES}copies"
+pipeline_dir="${WORKDIR}/test_repeat_detection"
+result_dir="${WORKDIR}/finder_selection"
+mock_repeats_dir="${result_dir}/mock_repeats_${MUTATION_TYPE}_${N_DESIRED_REPEAT_COPIES}copies"
+workdir_root="${result_dir}/workdirs_${N_DESIRED_REPEAT_COPIES}copies"
 mock_repeats_file="${mock_repeats_dir}/mock_repeats.fasta"
 true_repeat_dir="${mock_repeats_dir}/true_repeat_locations"
 replicate_id_list="${mock_repeats_dir}/replicate_id_list.txt"
