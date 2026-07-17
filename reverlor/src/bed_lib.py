@@ -5,6 +5,23 @@ import subprocess as sp
 from .FindArgs import FindArgs
 
 
+class RepeatRegion:
+    def __init__(self, ref_id, start, end):
+        self.ref_id = ref_id
+        self.start  = start
+        self.end    = end
+    # end def
+    def __str__(self):
+        return '{}:{}-{} (len {:,})'.format(
+            self.ref_id,
+            self.start,
+            self.end,
+            self.end - self.start + 1
+        )
+    # end def
+# end class
+
+
 def merge_features(args: FindArgs,
                    input_bed_fpath: str,
                    output_bed_fpath: str) -> None:
@@ -56,4 +73,20 @@ def merge_features(args: FindArgs,
             # end if
         # end for
     # end with
+# end def
+
+
+def read_bed_to_regions(input_fpath: str) -> list[RepeatRegion]:
+    regions = []
+    with open(input_fpath, 'rt') as ifh:
+        for line in ifh:
+            vals = line.strip().split('\t')
+            regions.append(RepeatRegion(
+                ref_id=vals[0],
+                start=int(vals[1]) + 1,   # to 1-based, inclusive
+                end=int(vals[2]),         # to 1-based, inclusive
+            ))
+        # end for
+    # end with
+    return regions
 # end def
