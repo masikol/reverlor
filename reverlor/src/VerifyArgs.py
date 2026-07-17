@@ -6,6 +6,8 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
+from .ReverlorArgs import ReverlorArgs
+
 
 SAMTOOLS_DEFAULT_FPATH = 'samtools'
 DEFAULT_NUM_READ_THRESHOLD = 5
@@ -168,6 +170,30 @@ class VerifyArgs:
             shoulder_len=args.shoulder_len,
             samtools_fpath=args.samtools,
             tmpdir=args.tmpdir,
+        )
+    # end def
+
+    @classmethod
+    def from_reverlor_args(cls,
+                           rev: 'ReverlorArgs',
+                           input_bed_fpath: str) -> 'VerifyArgs':
+        if not os.path.isfile(input_bed_fpath):
+            sys.stderr.write(
+                'Error: input BED file `{}` does not exist\n'.format(
+                    input_bed_fpath
+                )
+            )
+            sys.exit(1)
+        # end if
+        return cls(
+            input_fasta_fpath=rev.fasta_fpath,
+            input_bed_fpath=input_bed_fpath,
+            input_bam_fpath=rev.input_bam_fpath,
+            output_dir=rev.output_dir,
+            num_read_threshold=rev.num_read_threshold,
+            shoulder_len=rev.shoulder_len,
+            samtools_fpath=rev.samtools_fpath,
+            tmpdir=rev.tmpdir,
         )
     # end def
 # end class
