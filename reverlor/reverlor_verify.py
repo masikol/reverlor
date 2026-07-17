@@ -30,7 +30,7 @@ if sys.version_info.major < 3:
 
 
 # >>> Import functions >>>
-from src.reverlor_verify import ???
+from src.VerifyArgs import VerifyArgs
 # <<<
 
 
@@ -41,7 +41,8 @@ def main():
 # end def
 
 def reverlor_verify():
-    # verify repeats
+    args = VerifyArgs.parse_args()
+    # repeats_bed = find_repeats_minimap2(args)
 # end def
 
 # <<<
