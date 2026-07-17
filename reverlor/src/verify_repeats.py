@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 
+import os
 import sys
-from typing import NamedTuple
 
 from Bio import SeqIO
 
 from .VerifyArgs import VerifyArgs
 from .CoordIntersecter import CoordIntersecter
-from .bed_lib import RepeatRegion, read_bed_to_regions
+from .bed_lib import RepeatRegion, VerifyResult, read_bed_to_regions
 
 
-def print_unresolved_repeats(args: VerifyArgs) -> None:
+def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
+
+    os.makedirs(args.output_dir, exist_ok=True)
 
     all_regions = read_bed_to_regions(args.input_bed_fpath)
     ref_len_dict = _count_ref_lengths(args.input_fasta_fpath)
@@ -26,6 +28,8 @@ def print_unresolved_repeats(args: VerifyArgs) -> None:
     for region in all_regions:
         regions_by_ref[region.ref_id].append(region)
     # end for
+
+    results: list[VerifyResult] = []
 
     for ref_id, regions in regions_by_ref.items():
         regions.sort(key=lambda r: r.start)
@@ -102,6 +106,10 @@ def print_unresolved_repeats(args: VerifyArgs) -> None:
 
             num_read_throughs = len(read_ids)
             if num_read_throughs < args.num_read_threshold:
+                results.append(VerifyResult(
+                    region=region,
+                    num_read_throughs=num_read_throughs
+                ))
                 sys.stdout.write(
                     'Region {}: {} read-throughs\n'.format(
                         region,
@@ -111,6 +119,8 @@ def print_unresolved_repeats(args: VerifyArgs) -> None:
             # end if
         # end for
     # end for
+
+    return results
 # end def
 
 
@@ -135,10 +145,10 @@ def _check_coord_within_any_region(coord: int,
 
 
 def _find_shoulder_coord(regions: list[RepeatRegion],
-                          reg_i: int,
-                          shoulder_len: int,
-                          ref_len: int,
-                          right_shoulder: bool = True) -> int | None:
+                         reg_i: int,
+                         shoulder_len: int,
+                         ref_len: int,
+                         right_shoulder: bool = True) -> int | None:
 
     if right_shoulder:
         search_regions = regions[reg_i + 1:]

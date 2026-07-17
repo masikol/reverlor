@@ -16,6 +16,11 @@ DEFAULT_SHOULDER_LEN = 200
 
 def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
+        'input_fasta_fpath',
+        type=str,
+        help='Path to input FASTA file (required)'
+    )
+    parser.add_argument(
         'input_bed_fpath',
         type=str,
         help='Path to input BED file (required)'
@@ -26,9 +31,9 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Path to input BAM file (required)'
     )
     parser.add_argument(
-        'input_fasta_fpath',
+        'output_dir',
         type=str,
-        help='Path to input FASTA file (required)'
+        help='Path to output directory (required)'
     )
     parser.add_argument(
         '--num-read-threshold',
@@ -123,16 +128,18 @@ def _validate_samtools(executable_fpath: str) -> None:
 
 class VerifyArgs:
     def __init__(self,
+                 input_fasta_fpath: str,
                  input_bed_fpath: str,
                  input_bam_fpath: str,
-                 input_fasta_fpath: str,
+                 output_dir: str,
                  num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
                  shoulder_len: int = DEFAULT_SHOULDER_LEN,
                  samtools_fpath: str = SAMTOOLS_DEFAULT_FPATH,
                  tmpdir: Optional[str] = None):
+        self.input_fasta_fpath: str = input_fasta_fpath
         self.input_bed_fpath: str = input_bed_fpath
         self.input_bam_fpath: str = input_bam_fpath
-        self.input_fasta_fpath: str = input_fasta_fpath
+        self.output_dir: str = output_dir
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
         self.samtools_fpath: str = samtools_fpath
@@ -148,13 +155,15 @@ class VerifyArgs:
         args = parser.parse_args()
         _validate_args(args)
         # Convert to absolute paths
+        args.input_fasta_fpath = os.path.abspath(args.input_fasta_fpath)
         args.input_bed_fpath = os.path.abspath(args.input_bed_fpath)
         args.input_bam_fpath = os.path.abspath(args.input_bam_fpath)
-        args.input_fasta_fpath = os.path.abspath(args.input_fasta_fpath)
+        args.output_dir = os.path.abspath(args.output_dir)
         return cls(
+            input_fasta_fpath=args.input_fasta_fpath,
             input_bed_fpath=args.input_bed_fpath,
             input_bam_fpath=args.input_bam_fpath,
-            input_fasta_fpath=args.input_fasta_fpath,
+            output_dir=args.output_dir,
             num_read_threshold=args.num_read_threshold,
             shoulder_len=args.shoulder_len,
             samtools_fpath=args.samtools,

@@ -29,7 +29,7 @@ if sys.version_info.major < 3:
 # <<<
 
 
-# >>> Import functions >>>
+# >>> Import >>>
 from src.FindArgs import FindArgs
 from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 # <<<

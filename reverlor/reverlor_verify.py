@@ -29,9 +29,12 @@ if sys.version_info.major < 3:
 # <<<
 
 
-# >>> Import functions >>>
+# >>> Import >>>
+import os
+
 from src.VerifyArgs import VerifyArgs
-from src.verify_repeats import print_unresolved_repeats
+from src.verify_repeats import find_unresolved_repeats
+from src.bed_lib import verify_results_to_bed, VerifyResult
 # <<<
 
 
@@ -39,7 +42,16 @@ from src.verify_repeats import print_unresolved_repeats
 
 def reverlor_verify():
     args = VerifyArgs.parse_args()
-    print_unresolved_repeats(args)
+    unresolved_repeats: list[VerifyResult] = find_unresolved_repeats(args)
+    outfpath = _make_outfpath(args)
+    verify_results_to_bed(unresolved_repeats, outfpath)
+# end def
+
+def _make_outfpath(args: VerifyArgs) -> str:
+    return os.path.join(
+        args.output_dir,
+        'unresolved_reapeats.bed'
+    )
 # end def
 
 # <<<

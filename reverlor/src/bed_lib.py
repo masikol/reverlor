@@ -1,6 +1,7 @@
 
 import sys
 import subprocess as sp
+from typing import NamedTuple
 
 from .FindArgs import FindArgs
 
@@ -19,6 +20,12 @@ class RepeatRegion:
             self.end - self.start + 1
         )
     # end def
+# end class
+
+
+class VerifyResult(NamedTuple):
+    region: RepeatRegion
+    num_read_throughs: int
 # end class
 
 
@@ -89,4 +96,21 @@ def read_bed_to_regions(input_fpath: str) -> list[RepeatRegion]:
         # end for
     # end with
     return regions
+# end def
+
+
+def verify_results_to_bed(verify_results: list[VerifyResult],
+                          out_fpath: str) -> None:
+    with open(out_fpath, 'w') as fh:
+        for vr in verify_results:
+            start_0based = vr.region.start - 1
+            fh.write('\t'.join((
+                vr.region.ref_id,
+                str(start_0based),
+                str(vr.region.end),
+                'repeat',
+                str(vr.num_read_throughs),
+            )) + '\n')
+        # end for
+    # end with
 # end def
