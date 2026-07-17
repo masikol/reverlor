@@ -38,7 +38,7 @@ from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 
 def reverlor_find():
     args = FindArgs.parse_args()
-    repeats_bed = find_repeats_minimap2(args)
+    find_repeats_minimap2(args)
 # end def
 
 # <<<

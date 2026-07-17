@@ -31,18 +31,15 @@ if sys.version_info.major < 3:
 
 # >>> Import functions >>>
 from src.VerifyArgs import VerifyArgs
+from src.verify_repeats import print_unresolved_repeats
 # <<<
 
 
 # >>> Functions >>>
 
-def main():
-    reverlor_verify()
-# end def
-
 def reverlor_verify():
     args = VerifyArgs.parse_args()
-    # repeats_bed = find_repeats_minimap2(args)
+    print_unresolved_repeats(args)
 # end def
 
 # <<<
@@ -51,7 +48,7 @@ def reverlor_verify():
 # >>> Proceed >>>
 
 if __name__ == '__main__':
-    main()
+    reverlor_verify()
 # end if
 
 # <<<

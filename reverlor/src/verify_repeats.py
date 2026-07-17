@@ -10,13 +10,7 @@ from .CoordIntersecter import CoordIntersecter
 from .bed_lib import RepeatRegion, read_bed_to_regions
 
 
-class VerifyResult(NamedTuple):
-    region: RepeatRegion
-    num_read_throughs: int
-# end class
-
-
-def verify_repeats(args: VerifyArgs) -> list[VerifyResult]:
+def print_unresolved_repeats(args: VerifyArgs) -> None:
 
     all_regions = read_bed_to_regions(args.input_bed_fpath)
     ref_len_dict = _count_ref_lengths(args.input_fasta_fpath)
@@ -32,8 +26,6 @@ def verify_repeats(args: VerifyArgs) -> list[VerifyResult]:
     for region in all_regions:
         regions_by_ref[region.ref_id].append(region)
     # end for
-
-    results = []
 
     for ref_id, regions in regions_by_ref.items():
         regions.sort(key=lambda r: r.start)
@@ -110,15 +102,15 @@ def verify_repeats(args: VerifyArgs) -> list[VerifyResult]:
 
             num_read_throughs = len(read_ids)
             if num_read_throughs < args.num_read_threshold:
-                results.append(VerifyResult(
-                    region=region,
-                    num_read_throughs=num_read_throughs,
-                ))
+                sys.stdout.write(
+                    'Region {}: {} read-throughs\n'.format(
+                        region,
+                        num_read_throughs
+                    )
+                )
             # end if
         # end for
     # end for
-
-    return results
 # end def
 
 
