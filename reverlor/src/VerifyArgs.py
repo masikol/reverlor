@@ -9,7 +9,6 @@ from typing import Optional
 from .ReverlorArgs import ReverlorArgs
 
 
-SAMTOOLS_DEFAULT_FPATH = 'samtools'
 DEFAULT_NUM_READ_THRESHOLD = 5
 DEFAULT_SHOULDER_LEN = 200
 
@@ -50,12 +49,6 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Shoulder length for coordinate checking (default: 200)'
     )
     parser.add_argument(
-        '--samtools',
-        type=str,
-        default=SAMTOOLS_DEFAULT_FPATH,
-        help='Path to samtools executable'
-    )
-    parser.add_argument(
         '--tmpdir',
         type=str,
         default=None,
@@ -92,35 +85,6 @@ def _validate_args(args: argparse.Namespace) -> None:
         )
         sys.exit(1)
     # end if
-
-    _validate_samtools(args.samtools)
-# end def
-
-
-def _validate_samtools(executable_fpath: str) -> None:
-    cmd = [
-        executable_fpath,
-        '--version'
-    ]
-    pipe = sp.Popen(
-        cmd,
-        stdout=sp.PIPE,
-        stderr=sp.PIPE,
-        text=True,
-        encoding='utf-8',
-    )
-
-    _, err = pipe.communicate()
-    if pipe.returncode != 0:
-        sys.stderr.write(
-            'Error: cannot test samtools executable: `{}`\n'.format(
-                executable_fpath
-            )
-        )
-        sys.stderr.write('Error: please specify executable with --samtools option\n')
-        sys.stderr.write('{}\n'.format(err))
-        sys.exit(1)
-    # end if
 # end def
 
 # <<<
@@ -136,7 +100,6 @@ class VerifyArgs:
                  output_dir: str,
                  num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
                  shoulder_len: int = DEFAULT_SHOULDER_LEN,
-                 samtools_fpath: str = SAMTOOLS_DEFAULT_FPATH,
                  tmpdir: Optional[str] = None):
         self.input_fasta_fpath: str = input_fasta_fpath
         self.input_bed_fpath: str = input_bed_fpath
@@ -144,7 +107,6 @@ class VerifyArgs:
         self.output_dir: str = output_dir
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
-        self.samtools_fpath: str = samtools_fpath
         self.tmpdir: Optional[str] = tmpdir
     # end def
 
@@ -168,7 +130,6 @@ class VerifyArgs:
             output_dir=args.output_dir,
             num_read_threshold=args.num_read_threshold,
             shoulder_len=args.shoulder_len,
-            samtools_fpath=args.samtools,
             tmpdir=args.tmpdir,
         )
     # end def
@@ -192,7 +153,6 @@ class VerifyArgs:
             output_dir=rev.output_dir,
             num_read_threshold=rev.num_read_threshold,
             shoulder_len=rev.shoulder_len,
-            samtools_fpath=rev.samtools_fpath,
             tmpdir=rev.tmpdir,
         )
     # end def

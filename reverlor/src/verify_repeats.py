@@ -16,9 +16,9 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
 
     all_regions = read_bed_to_regions(args.input_bed_fpath)
     ref_len_dict = _count_ref_lengths(args.input_fasta_fpath)
+
     coord_intersecter = CoordIntersecter(
         args.input_bam_fpath,
-        samtools_fpath=args.samtools_fpath,
         F_flags=[256],
     )
 
@@ -35,36 +35,40 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
         regions.sort(key=lambda r: r.start)
 
         for reg_i, region in enumerate(regions):
-            shoulder_start = region.start - args.shoulder_len
-            shoulder_end   = region.end   + args.shoulder_len
+            shoulder_start = _get_coord_upstream(region,   args.shoulder_len)
+            shoulder_end   = _get_coord_downstream(region, args.shoulder_len)
 
             ref_len = ref_len_dict[region.ref_id]
             skip = False
 
-            if shoulder_start < 1:
+            if shoulder_start < 0:
                 sys.stderr.write(
                     'Region {}: cannot check left shoulder: '
                     'shoulder_start_coord = {} < 1\n'.format(
-                        region, shoulder_start
+                        region,
+                        shoulder_start + 1 # to 1 based, closed
                     )
                 )
                 skip = True
             # end if
-            if shoulder_end > ref_len:
+            if shoulder_end > ref_len - 1:
                 sys.stderr.write(
                     'Region {}: cannot check right shoulder: '
                     'shoulder_end_coord = {} > ref_len = {}\n'.format(
-                        region, shoulder_end, ref_len
+                        region,
+                        shoulder_end, # to 1 based, closed
+                        ref_len
                     )
                 )
                 skip = True
             # end if
 
-            if not skip and _check_coord_within_any_region(
-                shoulder_start, regions
-            ):
+            if not skip and _check_coord_within_any_region(shoulder_start, regions):
                 shoulder_start = _find_shoulder_coord(
-                    regions, reg_i, args.shoulder_len, ref_len,
+                    regions,
+                    reg_i,
+                    args.shoulder_len,
+                    ref_len,
                     right_shoulder=False
                 )
                 if shoulder_start is None:
@@ -77,11 +81,12 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
                 # end if
             # end if
 
-            if not skip and _check_coord_within_any_region(
-                shoulder_end, regions
-            ):
+            if not skip and _check_coord_within_any_region(shoulder_end, regions):
                 shoulder_end = _find_shoulder_coord(
-                    regions, reg_i, args.shoulder_len, ref_len,
+                    regions,
+                    reg_i,
+                    args.shoulder_len,
+                    ref_len,
                     right_shoulder=True
                 )
                 if shoulder_end is None:
@@ -138,7 +143,7 @@ def _count_ref_lengths(input_fasta_fpath: str) -> dict[str, int]:
 def _check_coord_within_any_region(coord: int,
                                    regions: list[RepeatRegion]) -> bool:
     return any(
-        region.start <= coord <= region.end
+        region.start <= coord < region.end
         for region in regions
     )
 # end def
@@ -159,8 +164,8 @@ def _find_shoulder_coord(regions: list[RepeatRegion],
     # end if
 
     for region in search_regions:
-        coord = get_coord(region)
-        if coord < 0 or coord > ref_len:
+        coord = get_coord(region, shoulder_len)
+        if coord < 0 or coord > ref_len - 1:
             return None
         # end if
         if not _check_coord_within_any_region(coord, search_regions):
@@ -179,11 +184,11 @@ def _find_shoulder_coord(regions: list[RepeatRegion],
 
 
 def _get_coord_downstream(region: RepeatRegion, shoulder_len: int) -> int:
-    return region.end + shoulder_len
+    return (region.end-1) + shoulder_len
 # end def
 
 
 def _get_coord_upstream(region: RepeatRegion, shoulder_len: int) -> int:
-    return region.end - shoulder_len
+    return region.start - shoulder_len
 # end def
 

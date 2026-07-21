@@ -5,6 +5,8 @@ import sys
 import subprocess as sp
 from typing import Optional
 
+import pysam
+
 
 UID_SEP = '$/$'
 
@@ -12,7 +14,6 @@ UID_SEP = '$/$'
 class CoordIntersecter:
     def __init__(self,
                  bam_fpath: str,
-                 samtools_fpath: str = 'samtools',
                  f_flags: Optional[list[int]] = None,
                  F_flags: Optional[list[int]] = None):
 
@@ -22,23 +23,36 @@ class CoordIntersecter:
             )
         # end if
 
-        f_str = ' '.join('-f {}'.format(flag) for flag in (f_flags or []))
-        F_str = ' '.join('-F {}'.format(flag) for flag in (F_flags or []))
-        self._flag_str = ' '.join((f_str, F_str)).strip()
-        self._bam_fpath = os.path.abspath(bam_fpath)
-        self._samtools_fpath = samtools_fpath
+        self._bam_file = pysam.AlignmentFile(bam_fpath, 'rb')
+
+        if f_flags is None or len(f_flags) == 0:
+            self._f_flags = None
+        else:
+            self._f_flags = f_flags
+        # end if
+
+        if F_flags is None or len(F_flags) == 0:
+            self._F_flags = None
+        else:
+            self._F_flags = F_flags
+        # end if
     # end def
+
+    def __del__(self):
+        self._bam_file.close()
+    # end def
+
 
     def intersect_coords(self,
                          rname: str,
                          pos_1: int,
                          pos_2: int) -> set[str]:
 
-        if pos_1 < 1:
-            raise ValueError('pos_1 must be >= 1, got {}'.format(pos_1))
+        if pos_1 < 0:
+            raise ValueError('pos_1 must be >= 0, got {}'.format(pos_1))
         # end if
-        if pos_2 < 1:
-            raise ValueError('pos_2 must be >= 1, got {}'.format(pos_2))
+        if pos_2 < 0:
+            raise ValueError('pos_2 must be >= 0, got {}'.format(pos_2))
         # end if
 
         uids_1 = self._get_read_uids_at(rname, pos_1)
@@ -46,56 +60,60 @@ class CoordIntersecter:
         common_uids = uids_1 & uids_2
 
         return frozenset((
-            self._uid_to_qname(uid) for uid in common_uids
+            _uid_to_qname(uid) for uid in common_uids
         ))
     # end def
 
     def _get_read_uids_at(self,
                           rname: str,
                           pos: int) -> frozenset[str]:
-
-        region = '{}:{}-{}'.format(rname, pos, pos)
-        cmd_items = [
-            self._samtools_fpath,
-            'view',
-            self._flag_str,
-            self._bam_fpath,
-            region,
-        ]
-        cmd = ' '.join(cmd_items)
-
-        pipe = sp.Popen(
-            cmd,
-            shell=True,
-            stdout=sp.PIPE,
-            stderr=sp.PIPE,
-            encoding='utf-8',
+        pos_segments = filter(
+            self._segment_passes_flag_filter,
+            self._bam_file.fetch(rname, pos, pos + 1) # +1 becaulse end is open (exclusive)
         )
-        outs, errs = pipe.communicate()
 
-        if pipe.returncode != 0:
-            raise RuntimeError(
-                'samtools view failed:\nCMD: {}\n{}'.format(cmd, errs)
-            )
+        pos_uids = map(
+            _sam_line_to_uid,
+            pos_segments
+        )
+
+        return frozenset(pos_uids)
+    # end def
+
+    def _segment_passes_flag_filter(self, seg: pysam.AlignedSegment) -> bool:
+
+        if self._f_flags is not None:
+            f_fails = not all(map(
+                lambda flag: (flag & seg.flag) == flag,
+                self._f_flags
+            ))
+            if f_fails:
+                return False
+            # end if
         # end if
 
-        return frozenset(
-            self._sam_line_to_uid(line) for line in outs.splitlines()
-        )
-    # end def
+        if self._F_flags is not None:
+            F_fails = any(map(
+                lambda flag: (flag & seg.flag) == flag,
+                self._F_flags
+            ))
+            if F_fails:
+                return False
+            # end if
+        # end if
 
-    @staticmethod
-    def _sam_line_to_uid(line: str) -> str:
-        vals = line.split('\t')[:4]
-        return UID_SEP.join((
-            vals[0].strip(),
-            vals[1].strip(),
-            vals[3].strip(),
-        ))
-    # end def
-
-    @staticmethod
-    def _uid_to_qname(uid: str) -> str:
-        return uid.partition(UID_SEP)[0]
+        return True
     # end def
 # end class
+
+def _sam_line_to_uid(read: pysam.AlignedSegment) -> str:
+    return UID_SEP.join((
+        read.query_name.strip(),
+        str(read.flag).strip(),
+        str(read.reference_start).strip(),
+    ))
+# end def
+
+def _uid_to_qname(uid: str) -> str:
+    return uid.partition(UID_SEP)[0]
+# end def

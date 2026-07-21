@@ -8,7 +8,6 @@ from typing import Optional
 
 
 MINIMAP2_DEFAULT_FPATH = 'minimap2'
-SAMTOOLS_DEFAULT_FPATH = 'samtools'
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
 MINIMAP_M_DEFAULT = 65
@@ -64,12 +63,6 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=str,
         default=MINIMAP2_DEFAULT_FPATH,
         help='Path to minimap2 executable'
-    )
-    parser.add_argument(
-        '--samtools',
-        type=str,
-        default=SAMTOOLS_DEFAULT_FPATH,
-        help='Path to samtools executable'
     )
     parser.add_argument(
         '--minimap-k',
@@ -173,7 +166,6 @@ def _validate_args(args: argparse.Namespace) -> None:
     # end if
 
     _validate_minimap2(args.minimap2)
-    _validate_samtools(args.samtools)
 # end def
 
 
@@ -192,21 +184,6 @@ def _validate_minimap2(executable_fpath: str) -> None:
 # end def
 
 
-def _validate_samtools(executable_fpath: str) -> None:
-    cmd = [executable_fpath, '--version']
-    pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
-    _, err = pipe.communicate()
-    if pipe.returncode != 0:
-        sys.stderr.write(
-            'Error: cannot test samtools executable: `{}`\n'.format(executable_fpath)
-        )
-        sys.stderr.write('Please specify executable with --samtools option\n')
-        sys.stderr.write('{}\n'.format(err))
-        sys.exit(1)
-    # end if
-# end def
-
-
 class ReverlorArgs:
     def __init__(self,
                  fasta_fpath: str,
@@ -217,7 +194,6 @@ class ReverlorArgs:
                  num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
                  shoulder_len: int = DEFAULT_SHOULDER_LEN,
                  minimap2_fpath: str = MINIMAP2_DEFAULT_FPATH,
-                 samtools_fpath: str = SAMTOOLS_DEFAULT_FPATH,
                  minimap_k: int = MINIMAP_K_DEFAULT,
                  minimap_w: int = MINIMAP_W_DEFAULT,
                  minimap_m: int = MINIMAP_M_DEFAULT,
@@ -233,7 +209,6 @@ class ReverlorArgs:
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
         self.minimap2_fpath: str = minimap2_fpath
-        self.samtools_fpath: str = samtools_fpath
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
@@ -263,7 +238,6 @@ class ReverlorArgs:
             num_read_threshold=args.num_read_threshold,
             shoulder_len=args.shoulder_len,
             minimap2_fpath=args.minimap2,
-            samtools_fpath=args.samtools,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,
