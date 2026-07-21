@@ -8,7 +8,6 @@ from typing import Optional
 
 
 MINIMAP2_DEFAULT_FPATH = 'minimap2'
-BEDTOOLS_DEFAULT_FPATH = 'bedtools'
 SAMTOOLS_DEFAULT_FPATH = 'samtools'
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
@@ -65,12 +64,6 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=str,
         default=MINIMAP2_DEFAULT_FPATH,
         help='Path to minimap2 executable'
-    )
-    parser.add_argument(
-        '--bedtools',
-        type=str,
-        default=BEDTOOLS_DEFAULT_FPATH,
-        help='Path to bedtools executable'
     )
     parser.add_argument(
         '--samtools',
@@ -180,7 +173,6 @@ def _validate_args(args: argparse.Namespace) -> None:
     # end if
 
     _validate_minimap2(args.minimap2)
-    _validate_bedtools(args.bedtools)
     _validate_samtools(args.samtools)
 # end def
 
@@ -194,31 +186,6 @@ def _validate_minimap2(executable_fpath: str) -> None:
             'Error: cannot test minimap2 executable: `{}`\n'.format(executable_fpath)
         )
         sys.stderr.write('Please specify executable with --minimap2 option\n')
-        sys.stderr.write('{}\n'.format(err))
-        sys.exit(1)
-    # end if
-# end def
-
-
-def _validate_bedtools(executable_fpath: str) -> None:
-    cmd = [executable_fpath, '--version']
-    try:
-        pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
-    except FileNotFoundError as err:
-        sys.stderr.write(
-            'Error: cannot find bedtools executable: `{}`\n'.format(executable_fpath)
-        )
-        sys.stderr.write('Please specify executable with --bedtools option\n')
-        sys.stderr.write('{}\n'.format(err))
-        sys.exit(1)
-    # end try
-
-    _, err = pipe.communicate()
-    if pipe.returncode != 0:
-        sys.stderr.write(
-            'Error: cannot test bedtools executable: `{}`\n'.format(executable_fpath)
-        )
-        sys.stderr.write('Please specify executable with --bedtools option\n')
         sys.stderr.write('{}\n'.format(err))
         sys.exit(1)
     # end if
@@ -250,7 +217,6 @@ class ReverlorArgs:
                  num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
                  shoulder_len: int = DEFAULT_SHOULDER_LEN,
                  minimap2_fpath: str = MINIMAP2_DEFAULT_FPATH,
-                 bedtools_fpath: str = BEDTOOLS_DEFAULT_FPATH,
                  samtools_fpath: str = SAMTOOLS_DEFAULT_FPATH,
                  minimap_k: int = MINIMAP_K_DEFAULT,
                  minimap_w: int = MINIMAP_W_DEFAULT,
@@ -267,7 +233,6 @@ class ReverlorArgs:
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
         self.minimap2_fpath: str = minimap2_fpath
-        self.bedtools_fpath: str = bedtools_fpath
         self.samtools_fpath: str = samtools_fpath
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
@@ -298,7 +263,6 @@ class ReverlorArgs:
             num_read_threshold=args.num_read_threshold,
             shoulder_len=args.shoulder_len,
             minimap2_fpath=args.minimap2,
-            bedtools_fpath=args.bedtools,
             samtools_fpath=args.samtools,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
