@@ -7,6 +7,7 @@ import subprocess as sp
 from typing import Optional
 
 from .ReverlorArgs import ReverlorArgs
+from.reverlor_logging import setup_logging
 
 
 DEFAULT_NUM_READ_THRESHOLD = 5
@@ -53,6 +54,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=str,
         default=None,
         help='Temporary directory (default: system temp dir)'
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='count',
+        default=0,
+        help='Increase verbosity. Can be used multiple times: -v, -vv, up to -vvv, which is debug mode.'
     )
 # end def
 
@@ -123,6 +131,7 @@ class VerifyArgs:
         args.input_bed_fpath = os.path.abspath(args.input_bed_fpath)
         args.input_bam_fpath = os.path.abspath(args.input_bam_fpath)
         args.output_dir = os.path.abspath(args.output_dir)
+        setup_logging(args.verbose)
         return cls(
             input_fasta_fpath=args.input_fasta_fpath,
             input_bed_fpath=args.input_bed_fpath,

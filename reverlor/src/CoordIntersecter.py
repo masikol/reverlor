@@ -2,7 +2,7 @@
 
 import os
 import sys
-import subprocess as sp
+import logging
 from typing import Optional
 
 import pysam
@@ -16,12 +16,6 @@ class CoordIntersecter:
                  bam_fpath: str,
                  f_flags: Optional[list[int]] = None,
                  F_flags: Optional[list[int]] = None):
-
-        if not os.path.isfile(bam_fpath):
-            raise FileNotFoundError(
-                'BAM file does not exist: `{}`'.format(bam_fpath)
-            )
-        # end if
 
         self._bam_file = pysam.AlignmentFile(bam_fpath, 'rb')
 

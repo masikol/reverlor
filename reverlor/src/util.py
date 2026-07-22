@@ -1,6 +1,7 @@
 
 import os
 import sys
+import logging
 
 
 def rm_files_if_exist(*fpaths: str) -> None:
@@ -9,9 +10,9 @@ def rm_files_if_exist(*fpaths: str) -> None:
             try:
                 os.unlink(fpath)
             except OSError as err:
-                sys.stderr.write('Error: cannot remove temp file `{}`'.format(fpath))
-                sys.stderr.write(str(err))
-                sys.stderr.write('Ignoring...')
+                logging.warning('Error: cannot remove temp file `{}`'.format(fpath))
+                logging.warning(str(err))
+                logging.warning('Ignoring...')
             # end try
         # end if
     # end for
@@ -22,8 +23,8 @@ def rm_empty_dir_if_exists(dir_path: str) -> None:
     try:
         os.rmdir(dir_path)
     except OSError as err:
-        sys.stderr.write('Error: cannot remove temp dir `{}`'.format(dir_path))
-        sys.stderr.write(str(err))
-        sys.stderr.write('Ignoring...')
+        logging.warning('Error: cannot remove temp dir `{}`'.format(dir_path))
+        logging.warning(str(err))
+        logging.warning('Ignoring...')
     # end try
 # end def

@@ -30,11 +30,14 @@ if sys.version_info.major < 3:
 
 
 # >>> Import >>>
+
 import os
+import logging
 
 from src.VerifyArgs import VerifyArgs
 from src.verify_repeats import find_unresolved_repeats
 from src.bed_lib import verify_results_to_bed, VerifyResult
+
 # <<<
 
 
@@ -42,9 +45,15 @@ from src.bed_lib import verify_results_to_bed, VerifyResult
 
 def reverlor_verify():
     args = VerifyArgs.parse_args()
+
+    logging.info('Repeat verification started')
     unresolved_repeats: list[VerifyResult] = find_unresolved_repeats(args)
     outfpath = _make_outfpath(args)
     verify_results_to_bed(unresolved_repeats, outfpath)
+
+    logging.info('Repeat verification completed!')
+    logging.info(f'output directory: `{args.output_dir}`')
+    logging.info(f'unresolved repeats are listed in this BED file: `{outfpath}`')
 # end def
 
 def _make_outfpath(args: VerifyArgs) -> str:

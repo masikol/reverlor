@@ -30,14 +30,17 @@ if sys.version_info.major < 3:
 
 
 # >>> Import >>>
-import os
 
-from src.ReverlorArgs import ReverlorArgs
+import os
+import logging
+
 from src.FindArgs import FindArgs
 from src.VerifyArgs import VerifyArgs
-from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
+from src.ReverlorArgs import ReverlorArgs
 from src.verify_repeats import find_unresolved_repeats
 from src.bed_lib import verify_results_to_bed, VerifyResult
+from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
+
 # <<<
 
 
@@ -50,13 +53,23 @@ def main():
 def reverlor():
     rev_args = ReverlorArgs.parse_args()
 
+    logging.info('Repeat search started')
     find_args = FindArgs.from_reverlor_args(rev_args)
-    bed_fpath = find_repeats_minimap2(find_args)
+    repeat_bed_fpath = find_repeats_minimap2(find_args)
 
-    verify_args = VerifyArgs.from_reverlor_args(rev_args, bed_fpath)
+    logging.info('Repeat search completed!')
+    logging.debug(f'Output directory: `{find_args.output_dir}`')
+    logging.info(f'Repeats are listed in this BED file: `{repeat_bed_fpath}`')
+
+    logging.info('Repeat verification started')
+    verify_args = VerifyArgs.from_reverlor_args(rev_args, repeat_bed_fpath)
     unresolved_repeats: list[VerifyResult] = find_unresolved_repeats(verify_args)
     outfpath = _make_outfpath(verify_args)
     verify_results_to_bed(unresolved_repeats, outfpath)
+
+    logging.info('Repeat verification completed!')
+    logging.info(f'output directory: `{verify_args.output_dir}`')
+    logging.info(f'unresolved repeats are listed in this BED file: `{outfpath}`')
 # end def
 
 def _make_outfpath(args: VerifyArgs) -> str:

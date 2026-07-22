@@ -24,11 +24,6 @@ def find_repeats(args: FindArgs) -> str:
         rm_files_if_exist(raw_bed_fpath)
     # end if
 
-    sys.stderr.write('\n')
-    sys.stderr.write('INFO: Completed!\n')
-    sys.stderr.write(f'INFO: output directory: `{args.output_dir}`\n')
-    sys.stderr.write(f'INFO: main output file: `{merged_bed_fpath}`\n')
-
     return merged_bed_fpath
 # end def
 

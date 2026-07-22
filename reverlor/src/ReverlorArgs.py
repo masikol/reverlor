@@ -6,6 +6,8 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
+from.reverlor_logging import setup_logging
+
 
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
@@ -100,6 +102,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=1,
         help='number of CPU threads to use'
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='count',
+        default=0,
+        help='Increase verbosity. Can be used multiple times: -v, -vv, up to -vvv, which is debug mode.'
     )
 # end def
 
@@ -203,6 +212,7 @@ class ReverlorArgs:
         args.fasta_fpath = os.path.abspath(args.fasta_fpath)
         args.output_dir = os.path.abspath(args.output_dir)
         args.input_bam_fpath = os.path.abspath(args.input_bam_fpath)
+        setup_logging(args.verbose)
         return cls(
             fasta_fpath=args.fasta_fpath,
             output_dir=args.output_dir,

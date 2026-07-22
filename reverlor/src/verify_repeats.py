@@ -2,6 +2,7 @@
 
 import os
 import sys
+import logging
 
 from Bio import SeqIO
 
@@ -42,9 +43,9 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
             skip = False
 
             if shoulder_start < 0:
-                sys.stderr.write(
+                logging.warning(
                     'Region {}: cannot check left shoulder: '
-                    'shoulder_start_coord = {} < 1\n'.format(
+                    'shoulder_start_coord = {} < 1'.format(
                         region,
                         shoulder_start + 1 # to 1 based, closed
                     )
@@ -52,9 +53,9 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
                 skip = True
             # end if
             if shoulder_end > ref_len - 1:
-                sys.stderr.write(
+                logging.warning(
                     'Region {}: cannot check right shoulder: '
-                    'shoulder_end_coord = {} > ref_len = {}\n'.format(
+                    'shoulder_end_coord = {} > ref_len = {}'.format(
                         region,
                         shoulder_end, # to 1 based, closed
                         ref_len
@@ -72,9 +73,9 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
                     right_shoulder=False
                 )
                 if shoulder_start is None:
-                    sys.stderr.write(
+                    logging.warning(
                         'Region {}: cannot find left shoulder coord for it: '
-                        'they all are within regions or beyond reference\n'
+                        'they all are within regions or beyond reference'
                         .format(region)
                     )
                     skip = True
@@ -90,9 +91,9 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
                     right_shoulder=True
                 )
                 if shoulder_end is None:
-                    sys.stderr.write(
+                    logging.warning(
                         'Region {}: cannot find right shoulder coord for it: '
-                        'they all are within regions or beyond reference\n'
+                        'they all are within regions or beyond reference'
                         .format(region)
                     )
                     skip = True
@@ -110,13 +111,21 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
             )
 
             num_read_throughs = len(read_ids)
+
+            logging.debug(
+                'Region {}: {} read-throughs'.format(
+                    region,
+                    num_read_throughs
+                )
+            )
+
             if num_read_throughs < args.num_read_threshold:
                 results.append(VerifyResult(
                     region=region,
                     num_read_throughs=num_read_throughs
                 ))
-                sys.stdout.write(
-                    'Region {}: {} read-throughs\n'.format(
+                logging.info(
+                    'Region {}: {} read-throughs'.format(
                         region,
                         num_read_throughs
                     )
@@ -170,8 +179,8 @@ def _find_shoulder_coord(regions: list[RepeatRegion],
         # end if
         if not _check_coord_within_any_region(coord, search_regions):
             word = 'right' if right_shoulder else 'left'
-            sys.stderr.write(
-                'INFO: Found {} shoulder coord for region {}: {}\n'.format(
+            logging.info(
+                'INFO: Found {} shoulder coord for region {}: {}'.format(
                     word, regions[reg_i], coord
                 )
             )

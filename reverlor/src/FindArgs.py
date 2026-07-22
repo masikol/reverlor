@@ -8,6 +8,7 @@ import subprocess as sp
 from typing import Optional
 
 from .ReverlorArgs import ReverlorArgs
+from.reverlor_logging import setup_logging
 
 
 MINIMAP_K_DEFAULT = 19
@@ -87,6 +88,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         default=1,
         help='number of CPU threads to use'
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='count',
+        default=0,
+        help='Increase verbosity. Can be used multiple times: -v, -vv, up to -vvv, which is debug mode.'
+    )
 # end def
 
 
@@ -164,6 +172,7 @@ class FindArgs:
         # Convert to absolute paths
         args.fasta_fpath = os.path.abspath(args.fasta_fpath)
         args.output_dir = os.path.abspath(args.output_dir)
+        setup_logging(args.verbose)
         return cls(
             fasta_fpath=args.fasta_fpath,
             output_dir=args.output_dir,

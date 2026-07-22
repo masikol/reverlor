@@ -30,15 +30,25 @@ if sys.version_info.major < 3:
 
 
 # >>> Import >>>
+
+import logging
+
 from src.FindArgs import FindArgs
 from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
+
 # <<<
 
 # >>> Functions >>>
 
 def reverlor_find():
     args = FindArgs.parse_args()
-    find_repeats_minimap2(args)
+
+    logging.info('Repeat search started')
+    repeat_bed_fpath = find_repeats_minimap2(args)
+
+    logging.info('Repeat search completed!')
+    logging.info(f'Output directory: `{args.output_dir}`')
+    logging.info(f'Repeats are listed in this BED file: `{repeat_bed_fpath}`')
 # end def
 
 # <<<
