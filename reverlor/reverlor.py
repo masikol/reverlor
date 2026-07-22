@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 
-__author__ = 'Maksim Sikolenko'
-__email__ = 'sikolenko@mbio.bas-net.by'
-__version__ = '0.0.a'
-__last_update_date__ = None
-
-
 # >>> Check python interpreter version >>>
 
 import sys
@@ -37,6 +31,7 @@ import logging
 from src.FindArgs import FindArgs
 from src.VerifyArgs import VerifyArgs
 from src.ReverlorArgs import ReverlorArgs
+from src._version import report_version_and_author
 from src.verify_repeats import find_unresolved_repeats
 from src.bed_lib import verify_results_to_bed, VerifyResult
 from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
@@ -52,6 +47,7 @@ def main():
 
 def reverlor():
     rev_args = ReverlorArgs.parse_args()
+    report_version_and_author()
 
     logging.info('Repeat search started')
     find_args = FindArgs.from_reverlor_args(rev_args)

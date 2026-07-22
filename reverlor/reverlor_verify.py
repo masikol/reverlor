@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 
-__author__ = 'Maksim Sikolenko'
-__email__ = 'sikolenko@mbio.bas-net.by'
-__version__ = '0.0.a'
-__last_update_date__ = None
-
-
 # >>> Check python interpreter version >>>
 
 import sys
@@ -35,6 +29,7 @@ import os
 import logging
 
 from src.VerifyArgs import VerifyArgs
+from src._version import report_version_and_author
 from src.verify_repeats import find_unresolved_repeats
 from src.bed_lib import verify_results_to_bed, VerifyResult
 
@@ -45,6 +40,7 @@ from src.bed_lib import verify_results_to_bed, VerifyResult
 
 def reverlor_verify():
     args = VerifyArgs.parse_args()
+    report_version_and_author()
 
     logging.info('Repeat verification started')
     unresolved_repeats: list[VerifyResult] = find_unresolved_repeats(args)

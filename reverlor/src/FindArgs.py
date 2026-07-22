@@ -7,6 +7,7 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
+from ._version import __version__, __last_update_date__
 from .ReverlorArgs import ReverlorArgs
 from.reverlor_logging import setup_logging
 
@@ -22,6 +23,11 @@ DEFAULT_MIN_REPEAT_INTERVAL = 100
 # >>> Helper functions >>>
 
 def _add_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        '-V', '--version',
+        action='version',
+        version='%(prog)s ' + __version__ + (', ' + __last_update_date__ + ' edition' if __last_update_date__ else ''),
+    )
     parser.add_argument(
         'fasta_fpath',
         type=str,
