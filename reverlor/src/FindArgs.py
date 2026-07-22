@@ -10,7 +10,6 @@ from typing import Optional
 from .ReverlorArgs import ReverlorArgs
 
 
-MINIMAP2_DEFAULT_FPATH = 'minimap2'
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
 MINIMAP_M_DEFAULT = 65
@@ -43,12 +42,6 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=DEFAULT_MIN_REPEAT_INTERVAL,
         help='Minimum interval between repeats (default: 100). If the interval is shorter, the repeats get merged.'
-    )
-    parser.add_argument(
-        '--minimap2',
-        type=str,
-        default=MINIMAP2_DEFAULT_FPATH,
-        help='Path to minimap2 executable'
     )
     parser.add_argument(
         '--minimap-k',
@@ -127,26 +120,6 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.stderr.write(f'Error: file `{args.fasta_fpath}` does not exist\n')
         sys.exit(1)
     # end if
-
-    _validate_minimap2(args.minimap2)
-# end def
-
-def _validate_minimap2(executable_fpath: str) -> None:
-    cmd = [
-        executable_fpath,
-        '--version'
-    ]
-    pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
-
-    _, err = pipe.communicate()
-    if pipe.returncode != 0:
-        sys.stderr.write(
-            'Error: cannot test minimap2 executable: `{}`\n'.format(executable_fpath)
-        )
-        sys.stderr.write('Error: please specify executable with --minimap2 option\n')
-        sys.stderr.write('{}\n'.format(err))
-        sys.exit(1)
-    # end if
 # end def
 
 # <<<
@@ -160,7 +133,6 @@ class FindArgs:
                  output_dir: str,
                  min_repeat_len: int = 200,
                  min_repeat_interval: int = 100,
-                 minimap2_fpath: Optional[str] = MINIMAP2_DEFAULT_FPATH,
                  minimap_k: int = MINIMAP_K_DEFAULT,
                  minimap_w: int = MINIMAP_W_DEFAULT,
                  minimap_m: int = MINIMAP_M_DEFAULT,
@@ -172,7 +144,6 @@ class FindArgs:
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
         self.min_repeat_interval: int = min_repeat_interval
-        self.minimap2_fpath: Optional[str] = minimap2_fpath
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
@@ -198,7 +169,6 @@ class FindArgs:
             output_dir=args.output_dir,
             min_repeat_len=args.min_repeat_len,
             min_repeat_interval=args.min_repeat_interval,
-            minimap2_fpath=args.minimap2,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,
@@ -216,7 +186,6 @@ class FindArgs:
             output_dir=rev.output_dir,
             min_repeat_len=rev.min_repeat_len,
             min_repeat_interval=rev.min_repeat_interval,
-            minimap2_fpath=rev.minimap2_fpath,
             minimap_k=rev.minimap_k,
             minimap_w=rev.minimap_w,
             minimap_m=rev.minimap_m,

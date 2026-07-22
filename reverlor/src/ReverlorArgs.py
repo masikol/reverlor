@@ -7,7 +7,6 @@ import subprocess as sp
 from typing import Optional
 
 
-MINIMAP2_DEFAULT_FPATH = 'minimap2'
 MINIMAP_K_DEFAULT = 19
 MINIMAP_W_DEFAULT = 19
 MINIMAP_M_DEFAULT = 65
@@ -57,12 +56,6 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=DEFAULT_SHOULDER_LEN,
         help='Shoulder length for coordinate checking (default: 200)'
-    )
-    parser.add_argument(
-        '--minimap2',
-        type=str,
-        default=MINIMAP2_DEFAULT_FPATH,
-        help='Path to minimap2 executable'
     )
     parser.add_argument(
         '--minimap-k',
@@ -164,23 +157,6 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.stderr.write('It must be a positive integer\n')
         sys.exit(1)
     # end if
-
-    _validate_minimap2(args.minimap2)
-# end def
-
-
-def _validate_minimap2(executable_fpath: str) -> None:
-    cmd = [executable_fpath, '--version']
-    pipe = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True, encoding='utf-8')
-    _, err = pipe.communicate()
-    if pipe.returncode != 0:
-        sys.stderr.write(
-            'Error: cannot test minimap2 executable: `{}`\n'.format(executable_fpath)
-        )
-        sys.stderr.write('Please specify executable with --minimap2 option\n')
-        sys.stderr.write('{}\n'.format(err))
-        sys.exit(1)
-    # end if
 # end def
 
 
@@ -193,7 +169,6 @@ class ReverlorArgs:
                  min_repeat_interval: int = DEFAULT_MIN_REPEAT_INTERVAL,
                  num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
                  shoulder_len: int = DEFAULT_SHOULDER_LEN,
-                 minimap2_fpath: str = MINIMAP2_DEFAULT_FPATH,
                  minimap_k: int = MINIMAP_K_DEFAULT,
                  minimap_w: int = MINIMAP_W_DEFAULT,
                  minimap_m: int = MINIMAP_M_DEFAULT,
@@ -208,7 +183,6 @@ class ReverlorArgs:
         self.min_repeat_interval: int = min_repeat_interval
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
-        self.minimap2_fpath: str = minimap2_fpath
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
@@ -237,7 +211,6 @@ class ReverlorArgs:
             min_repeat_interval=args.min_repeat_interval,
             num_read_threshold=args.num_read_threshold,
             shoulder_len=args.shoulder_len,
-            minimap2_fpath=args.minimap2,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,

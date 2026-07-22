@@ -2,7 +2,9 @@
 
 import os
 import sys
-import subprocess as sp
+
+import mappy as mp
+
 from .FindArgs import FindArgs
 from .bed_lib import merge_features
 from .util import rm_files_if_exist
@@ -33,41 +35,43 @@ def find_repeats(args: FindArgs) -> str:
 
 def _create_raw_repeat_file(args: FindArgs,
                             output_bed_fpath: str) -> None:
+    # See files main.c and minimap.h of minimap2
+    MM_F_ALL_CHAINS = 0x800000 # for -P
+    MM_F_NO_DIAG    =    0x001 # for -D 
+    MM_OUT_CG       =    0x020 # for -c, won’t take effect, mappy enforces it anyway, but just in case
+    MM_F_CIGAR      =    0x004 # for -c, won’t take effect, mappy enforces it anyway, but just in case
 
-    cmd = [args.minimap2_fpath]
-    if args.minimap_x is not None:
-        cmd += ['-x', args.minimap_x]
-    # end if
-    cmd += [
-        '-c',
-        '-PD',
-        '-k', str(args.minimap_k),
-        '-w', str(args.minimap_w),
-        '-m', str(args.minimap_m),
-        '-t', str(args.threads),
-        args.fasta_fpath,
-        args.fasta_fpath,
-    ]
+    extra_flags = MM_F_ALL_CHAINS | MM_F_NO_DIAG | MM_OUT_CG | MM_F_CIGAR
 
-    with open(output_bed_fpath, 'w') as bed_handle:
-        proc = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
-        for line in proc.stdout:
-            fields = line.strip().split('\t')
-            # TODO: what should I actually do in this case??
-            if len(fields) < 12:
-                continue
-            # end if
-            # Query coords (cols 1, 3, 4)
-            bed_handle.write(f'{fields[0]}\t{fields[2]}\t{fields[3]}\n')
-            # Target coords (cols 6, 8, 9)
-            bed_handle.write(f'{fields[5]}\t{fields[7]}\t{fields[8]}\n')
+    aligner = mp.Aligner(
+        args.fasta_fpath,
+        preset=args.minimap_x,
+        k=args.minimap_k,
+        w=args.minimap_w,
+        min_chain_score=args.minimap_m,
+        n_threads=args.threads,
+        extra_flags=extra_flags
+    )
+
+    with open(output_bed_fpath, 'wt') as bed_handle:
+        for name, seq, qual in mp.fastx_read(args.fasta_fpath):
+            # Passing name to aligner.map is neccessary for MM_F_NO_DIAG to actually take affect
+            for hit in aligner.map(seq, name=name):
+                bed_handle.write(
+                    _make_bed_string(hit, name)
+                )
+            # end for
         # end for
-        proc.wait()
-        if proc.returncode != 0:
-            err = proc.stderr.read()
-            sys.stderr.write(f'ERROR: minimap2 failed with code {proc.returncode}\n')
-            sys.stderr.write('{}\n'.format(err))
-            sys.exit(1)
-        # end if
     # end with
+# end def
+
+def _make_bed_string(hit: mp.Alignment, query_name: str) -> str:
+    return '{}\n'.format('\t'.join([
+        query_name,
+        str(hit.q_st),
+        str(hit.q_en),
+        hit.ctg,
+        str(hit.r_st),
+        str(hit.r_en),
+    ]))
 # end def
