@@ -41,6 +41,7 @@ from src.bed_lib import verify_results_to_bed, VerifyResult
 def reverlor_verify():
     args = VerifyArgs.parse_args()
     report_version_and_author()
+    logging.info(args)
 
     logging.info('Repeat verification started')
     unresolved_repeats: list[VerifyResult] = find_unresolved_repeats(args)

@@ -167,6 +167,15 @@ class FindArgs:
         self.threads = threads
     # end def
 
+    def __str__(self) -> str:
+        lines = ['FindArgs:']
+        for attr, val in self.__dict__.items():
+            lines.append(f'  {attr:25s}= {val}')
+        # end for
+        lines.append('='*20)
+        return '\n'.join(lines)
+    # end def
+
     @classmethod
     def parse_args(cls) -> 'FindArgs':
         parser = argparse.ArgumentParser(

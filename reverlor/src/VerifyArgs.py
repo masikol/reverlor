@@ -124,6 +124,15 @@ class VerifyArgs:
         self.tmpdir: Optional[str] = tmpdir
     # end def
 
+    def __str__(self) -> str:
+        lines = ['VerifyArgs:']
+        for attr, val in self.__dict__.items():
+            lines.append(f'  {attr:25s}= {val}')
+        # end for
+        lines.append('='*20)
+        return '\n'.join(lines)
+    # end def
+
     @classmethod
     def parse_args(cls) -> 'VerifyArgs':
         parser = argparse.ArgumentParser(
