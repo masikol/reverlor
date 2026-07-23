@@ -1,0 +1,23 @@
+
+MINIMAP_K = 19
+MINIMAP_W = 19
+MINIMAP_M = 65
+
+MINIMAP_X = None
+MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
+
+MIN_REPAT_LEN = 200
+MIN_REPEAT_INTERVAL = 100
+
+NUM_THREADS = 1
+
+TMP_DIR_PATH = None
+KEEP_TMP_FILES = False
+
+VERBOSE = 0
+
+NUM_READ_THRESHOLD = 5
+SHOULDER_LEN = 200
+
+SAMTOOLS_f = []
+SAMTOOLS_F = [256,]

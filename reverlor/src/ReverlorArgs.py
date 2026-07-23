@@ -6,26 +6,19 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
+import src.defaults as defaults
+from .reverlor_logging import setup_logging
 from ._version import __version__, __last_update_date__
-
-from.reverlor_logging import setup_logging
-
-
-MINIMAP_K_DEFAULT = 19
-MINIMAP_W_DEFAULT = 19
-MINIMAP_M_DEFAULT = 65
-MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
-DEFAULT_MIN_REPAT_LEN = 200
-DEFAULT_MIN_REPEAT_INTERVAL = 100
-DEFAULT_NUM_READ_THRESHOLD = 5
-DEFAULT_SHOULDER_LEN = 200
 
 
 def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-V', '--version',
         action='version',
-        version='%(prog)s ' + __version__ + (', ' + __last_update_date__ + ' edition' if __last_update_date__ else ''),
+        version=(
+            '%(prog)s ' + __version__ +
+            ', ' + __last_update_date__ + ' edition'
+        ),
     )
     parser.add_argument(
         'fasta_fpath',
@@ -45,90 +38,90 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--min-repeat-len',
         type=int,
-        default=DEFAULT_MIN_REPAT_LEN,
+        default=defaults.MIN_REPAT_LEN,
         help='Minimum repeat length (default: 200)'
     )
     parser.add_argument(
         '--min-repeat-interval',
         type=int,
-        default=DEFAULT_MIN_REPEAT_INTERVAL,
+        default=defaults.MIN_REPEAT_INTERVAL,
         help='Minimum interval between repeats (default: 100)'
     )
     parser.add_argument(
         '--num-read-threshold',
         type=int,
-        default=DEFAULT_NUM_READ_THRESHOLD,
+        default=defaults.NUM_READ_THRESHOLD,
         help='Minimum number of read-throughs to consider a region resolved (default: 5)'
     )
     parser.add_argument(
         '--shoulder-len',
         type=int,
-        default=DEFAULT_SHOULDER_LEN,
+        default=defaults.SHOULDER_LEN,
         help='Shoulder length for coordinate checking (default: 200)'
     )
     parser.add_argument(
         '--minimap-k',
         type=int,
-        default=MINIMAP_K_DEFAULT,
+        default=defaults.MINIMAP_K,
         help='minimap2 k-mer length (default: 19)'
     )
     parser.add_argument(
         '--minimap-w',
         type=int,
-        default=MINIMAP_W_DEFAULT,
+        default=defaults.MINIMAP_W,
         help='minimap2 minimizer window size (default: 19)'
     )
     parser.add_argument(
         '--minimap-m',
         type=int,
-        default=MINIMAP_M_DEFAULT,
+        default=defaults.MINIMAP_M,
         help='minimap2 matching score (default: 127)'
     )
     parser.add_argument(
         '--minimap-x',
         type=str,
-        default=None,
-        choices=MINIMAP_X_CHOICES,
-        help='minimap2 preset (default: not passed)'
+        default=defaults.MINIMAP_X,
+        choices=defaults.MINIMAP_X_CHOICES,
+        help='minimap2 preset (default: not set)'
     )
     parser.add_argument(
         '--samtools-f',
         type=int,
         action='append',
         default=None,
-        help='samtools -f flag (repeatable)'
+        help='samtools -f flag (repeatable, default: none set)'
     )
     parser.add_argument(
         '--samtools-F',
         type=int,
         action='append',
         default=None,
-        help='samtools -F flag (repeatable, default: 256)'
+        help=f'samtools -F flag (repeatable, default: {defaults.SAMTOOLS_F})'
     )
     parser.add_argument(
         '--keep-tmp',
         action='store_true',
-        default=False,
+        default=defaults.KEEP_TMP_FILES,
         help='Keep temporary files (default: False)'
     )
     parser.add_argument(
         '--tmpdir',
         type=str,
-        default=None,
+        default=defaults.TMP_DIR_PATH,
         help='Temporary directory (default: system temp dir)'
     )
     parser.add_argument(
         '-t',
         '--threads',
         type=int,
-        default=1,
+        default=defaults.NUM_THREADS,
         help='number of CPU threads to use'
     )
     parser.add_argument(
         '-v',
         '--verbose',
         action='count',
-        default=0,
+        default=defaults.VERBOSE,
         help='Increase verbosity. Can be used multiple times: -v, -vv, up to -vvv, which is debug mode.'
     )
 # end def
@@ -195,13 +188,13 @@ class ReverlorArgs:
                  fasta_fpath: str,
                  output_dir: str,
                  input_bam_fpath: str,
-                 min_repeat_len: int = DEFAULT_MIN_REPAT_LEN,
-                 min_repeat_interval: int = DEFAULT_MIN_REPEAT_INTERVAL,
-                 num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
-                 shoulder_len: int = DEFAULT_SHOULDER_LEN,
-                 minimap_k: int = MINIMAP_K_DEFAULT,
-                 minimap_w: int = MINIMAP_W_DEFAULT,
-                 minimap_m: int = MINIMAP_M_DEFAULT,
+                 min_repeat_len: int = defaults.MIN_REPAT_LEN,
+                 min_repeat_interval: int = defaults.MIN_REPEAT_INTERVAL,
+                 num_read_threshold: int = defaults.NUM_READ_THRESHOLD,
+                 shoulder_len: int = defaults.SHOULDER_LEN,
+                 minimap_k: int = defaults.MINIMAP_K,
+                 minimap_w: int = defaults.MINIMAP_W,
+                 minimap_m: int = defaults.MINIMAP_M,
                  minimap_x: Optional[str] = None,
                  keep_tmp: bool = False,
                  samtools_f: Optional[list[int]] = None,
@@ -220,14 +213,14 @@ class ReverlorArgs:
         self.minimap_m: int = minimap_m
         self.minimap_x: Optional[str] = minimap_x
         self.keep_tmp: bool = keep_tmp
-        self.samtools_f: list[int] = samtools_f if samtools_f is not None else []
-        self.samtools_F: list[int] = samtools_F if samtools_F is not None else [256,]
+        self.samtools_f: list[int] = samtools_f if samtools_f is not None else defaults.SAMTOOLS_f
+        self.samtools_F: list[int] = samtools_F if samtools_F is not None else defaults.SAMTOOLS_F
         self.tmpdir: Optional[str] = tmpdir
         self.threads: int = threads
     # end def
 
     def __str__(self) -> str:
-        lines = ['ReverlorArgs:']
+        lines = ['Run parameters:']
         for attr, val in self.__dict__.items():
             lines.append(f'  {attr:25s}= {val}')
         # end for

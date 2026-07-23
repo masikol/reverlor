@@ -6,13 +6,12 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
-from ._version import __version__, __last_update_date__
+import src.defaults as defaults
 from .ReverlorArgs import ReverlorArgs
-from.reverlor_logging import setup_logging
+from .reverlor_logging import setup_logging
+from ._version import __version__, __last_update_date__
 
 
-DEFAULT_NUM_READ_THRESHOLD = 5
-DEFAULT_SHOULDER_LEN = 200
 
 
 # >>> Helper functions >>>
@@ -21,7 +20,10 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-V', '--version',
         action='version',
-        version='%(prog)s ' + __version__ + (', ' + __last_update_date__ + ' edition' if __last_update_date__ else ''),
+        version=(
+            '%(prog)s ' + __version__ +
+            ', ' + __last_update_date__ + ' edition'
+        ),
     )
     parser.add_argument(
         'input_fasta_fpath',
@@ -46,13 +48,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--num-read-threshold',
         type=int,
-        default=DEFAULT_NUM_READ_THRESHOLD,
+        default=defaults.NUM_READ_THRESHOLD,
         help='Minimum number of read-throughs to consider a region resolved (default: 5)'
     )
     parser.add_argument(
         '--shoulder-len',
         type=int,
-        default=DEFAULT_SHOULDER_LEN,
+        default=defaults.SHOULDER_LEN,
         help='Shoulder length for coordinate checking (default: 200)'
     )
     parser.add_argument(
@@ -60,26 +62,26 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         action='append',
         default=None,
-        help='samtools -f flag (repeatable)'
+        help='samtools -f flag (repeatable, default: none set)'
     )
     parser.add_argument(
         '--samtools-F',
         type=int,
         action='append',
         default=None,
-        help='samtools -F flag (repeatable, default: 256)'
+        help=f'samtools -F flag (repeatable, default: {defaults.SAMTOOLS_F})'
     )
     parser.add_argument(
         '--tmpdir',
         type=str,
-        default=None,
+        default=defaults.TMP_DIR_PATH,
         help='Temporary directory (default: system temp dir)'
     )
     parser.add_argument(
         '-v',
         '--verbose',
         action='count',
-        default=0,
+        default=defaults.VERBOSE,
         help='Increase verbosity. Can be used multiple times: -v, -vv, up to -vvv, which is debug mode.'
     )
 # end def
@@ -126,8 +128,8 @@ class VerifyArgs:
                  input_bed_fpath: str,
                  input_bam_fpath: str,
                  output_dir: str,
-                 num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
-                 shoulder_len: int = DEFAULT_SHOULDER_LEN,
+                 num_read_threshold: int = defaults.NUM_READ_THRESHOLD,
+                 shoulder_len: int = defaults.SHOULDER_LEN,
                  samtools_f: Optional[list[int]] = None,
                  samtools_F: Optional[list[int]] = None,
                  tmpdir: Optional[str] = None):
@@ -137,13 +139,13 @@ class VerifyArgs:
         self.output_dir: str = output_dir
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
-        self.samtools_f: list[int] = samtools_f if samtools_f is not None else []
-        self.samtools_F: list[int] = samtools_F if samtools_F is not None else [256,]
+        self.samtools_f: list[int] = samtools_f if samtools_f is not None else defaults.SAMTOOLS_f
+        self.samtools_F: list[int] = samtools_F if samtools_F is not None else defaults.SAMTOOLS_F
         self.tmpdir: Optional[str] = tmpdir
     # end def
 
     def __str__(self) -> str:
-        lines = ['VerifyArgs:']
+        lines = ['Run parameters:']
         for attr, val in self.__dict__.items():
             lines.append(f'  {attr:25s}= {val}')
         # end for

@@ -7,17 +7,10 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
-from ._version import __version__, __last_update_date__
+import src.defaults as defaults
 from .ReverlorArgs import ReverlorArgs
-from.reverlor_logging import setup_logging
-
-
-MINIMAP_K_DEFAULT = 19
-MINIMAP_W_DEFAULT = 19
-MINIMAP_M_DEFAULT = 65
-MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5', 'asm10', 'asm20',)
-DEFAULT_MIN_REPAT_LEN = 200
-DEFAULT_MIN_REPEAT_INTERVAL = 100
+from .reverlor_logging import setup_logging
+from ._version import __version__, __last_update_date__
 
 
 # >>> Helper functions >>>
@@ -26,7 +19,10 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-V', '--version',
         action='version',
-        version='%(prog)s ' + __version__ + (', ' + __last_update_date__ + ' edition' if __last_update_date__ else ''),
+        version=(
+            '%(prog)s ' + __version__ +
+            ', ' + __last_update_date__ + ' edition'
+        ),
     )
     parser.add_argument(
         'fasta_fpath',
@@ -41,64 +37,67 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--min-repeat-len',
         type=int,
-        default=DEFAULT_MIN_REPAT_LEN,
-        help='Minimum repeat length (default: 200)'
+        default=defaults.MIN_REPAT_LEN,
+        help=f'Minimum repeat length (default: {defaults.MIN_REPAT_LEN})'
     )
     parser.add_argument(
         '--min-repeat-interval',
         type=int,
-        default=DEFAULT_MIN_REPEAT_INTERVAL,
-        help='Minimum interval between repeats (default: 100). If the interval is shorter, the repeats get merged.'
+        default=defaults.MIN_REPEAT_INTERVAL,
+        help=(
+            f'inimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}).'
+            'If the interval is shorter, the repeats get merged.'
+        )
     )
     parser.add_argument(
         '--minimap-k',
         type=int,
-        default=MINIMAP_K_DEFAULT,
-        help='minimap2 k-mer length (default: 19)'
+        default=defaults.MINIMAP_K,
+        help=f'minimap2 k-mer length (default: {defaults.MINIMAP_K})'
     )
     parser.add_argument(
         '--minimap-w',
         type=int,
-        default=MINIMAP_W_DEFAULT,
-        help='minimap2 minimizer window size (default: 19)'
+        default=defaults.MINIMAP_W,
+        help=f'minimap2 minimizer window size (default: {defaults.MINIMAP_W})'
     )
     parser.add_argument(
         '--minimap-m',
         type=int,
-        default=MINIMAP_M_DEFAULT,
-        help='minimap2 matching score (default: 127)'
+        default=defaults.MINIMAP_M,
+        help=f'minimap2 matching score (default: {defaults.MINIMAP_M})'
     )
     parser.add_argument(
         '--minimap-x',
         type=str,
-        default=None,
-        choices=MINIMAP_X_CHOICES,
-        help='minimap2 preset (default: not passed)'
+        default=defaults.MINIMAP_X,
+        choices=defaults.MINIMAP_X_CHOICES,
+        help='minimap2 preset (default: not set)'
     )
     parser.add_argument(
         '--keep-tmp',
         action='store_true',
-        default=False,
-        help='Keep temporary files (default: False)'
+        default=defaults.KEEP_TMP_FILES,
+        help=f'Keep temporary files (default: {defaults.KEEP_TMP_FILES})'
     )
     parser.add_argument(
         '--tmpdir',
         type=str,
-        default=None,
+        default=defaults.TMP_DIR_PATH,
         help='Temporary directory (default: system temp dir)'
     )
     parser.add_argument(
         '-t',
         '--threads',
         type=int,
-        default=1,
-        help='number of CPU threads to use'
+        default=defaults.NUM_THREADS,
+        help=f'number of CPU threads to use (default: {defaults.NUM_THREADS})'
     )
     parser.add_argument(
         '-v',
         '--verbose',
         action='count',
-        default=0,
+        default=defaults.VERBOSE,
         help='Increase verbosity. Can be used multiple times: -v, -vv, up to -vvv, which is debug mode.'
     )
 # end def
@@ -147,9 +146,9 @@ class FindArgs:
                  output_dir: str,
                  min_repeat_len: int = 200,
                  min_repeat_interval: int = 100,
-                 minimap_k: int = MINIMAP_K_DEFAULT,
-                 minimap_w: int = MINIMAP_W_DEFAULT,
-                 minimap_m: int = MINIMAP_M_DEFAULT,
+                 minimap_k: int = defaults.MINIMAP_K,
+                 minimap_w: int = defaults.MINIMAP_W,
+                 minimap_m: int = defaults.MINIMAP_M,
                  minimap_x: Optional[str] = None,
                  keep_tmp: bool = False,
                  tmpdir: Optional[str] = None,
@@ -168,7 +167,7 @@ class FindArgs:
     # end def
 
     def __str__(self) -> str:
-        lines = ['FindArgs:']
+        lines = ['Run parameters:']
         for attr, val in self.__dict__.items():
             lines.append(f'  {attr:25s}= {val}')
         # end for
