@@ -56,6 +56,20 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Shoulder length for coordinate checking (default: 200)'
     )
     parser.add_argument(
+        '--samtools-f',
+        type=int,
+        action='append',
+        default=None,
+        help='samtools -f flag (repeatable)'
+    )
+    parser.add_argument(
+        '--samtools-F',
+        type=int,
+        action='append',
+        default=None,
+        help='samtools -F flag (repeatable, default: 256)'
+    )
+    parser.add_argument(
         '--tmpdir',
         type=str,
         default=None,
@@ -114,6 +128,8 @@ class VerifyArgs:
                  output_dir: str,
                  num_read_threshold: int = DEFAULT_NUM_READ_THRESHOLD,
                  shoulder_len: int = DEFAULT_SHOULDER_LEN,
+                 samtools_f: Optional[list[int]] = None,
+                 samtools_F: Optional[list[int]] = None,
                  tmpdir: Optional[str] = None):
         self.input_fasta_fpath: str = input_fasta_fpath
         self.input_bed_fpath: str = input_bed_fpath
@@ -121,6 +137,8 @@ class VerifyArgs:
         self.output_dir: str = output_dir
         self.num_read_threshold: int = num_read_threshold
         self.shoulder_len: int = shoulder_len
+        self.samtools_f: list[int] = samtools_f if samtools_f is not None else []
+        self.samtools_F: list[int] = samtools_F if samtools_F is not None else [256,]
         self.tmpdir: Optional[str] = tmpdir
     # end def
 
@@ -154,6 +172,8 @@ class VerifyArgs:
             output_dir=args.output_dir,
             num_read_threshold=args.num_read_threshold,
             shoulder_len=args.shoulder_len,
+            samtools_f=args.samtools_f,
+            samtools_F=args.samtools_F,
             tmpdir=args.tmpdir,
         )
     # end def
@@ -177,6 +197,8 @@ class VerifyArgs:
             output_dir=rev.output_dir,
             num_read_threshold=rev.num_read_threshold,
             shoulder_len=rev.shoulder_len,
+            samtools_f=rev.samtools_f,
+            samtools_F=rev.samtools_F,
             tmpdir=rev.tmpdir,
         )
     # end def

@@ -20,7 +20,8 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
 
     coord_intersecter = CoordIntersecter(
         args.input_bam_fpath,
-        F_flags=[256],
+        f_flags=args.samtools_f,
+        F_flags=args.samtools_F,
     )
 
     regions_by_ref = {

@@ -92,6 +92,20 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='minimap2 preset (default: not passed)'
     )
     parser.add_argument(
+        '--samtools-f',
+        type=int,
+        action='append',
+        default=None,
+        help='samtools -f flag (repeatable)'
+    )
+    parser.add_argument(
+        '--samtools-F',
+        type=int,
+        action='append',
+        default=None,
+        help='samtools -F flag (repeatable, default: 256)'
+    )
+    parser.add_argument(
         '--keep-tmp',
         action='store_true',
         default=False,
@@ -190,6 +204,8 @@ class ReverlorArgs:
                  minimap_m: int = MINIMAP_M_DEFAULT,
                  minimap_x: Optional[str] = None,
                  keep_tmp: bool = False,
+                 samtools_f: Optional[list[int]] = None,
+                 samtools_F: Optional[list[int]] = None,
                  tmpdir: Optional[str] = None,
                  threads: int = 1):
         self.fasta_fpath: str = fasta_fpath
@@ -204,6 +220,8 @@ class ReverlorArgs:
         self.minimap_m: int = minimap_m
         self.minimap_x: Optional[str] = minimap_x
         self.keep_tmp: bool = keep_tmp
+        self.samtools_f: list[int] = samtools_f if samtools_f is not None else []
+        self.samtools_F: list[int] = samtools_F if samtools_F is not None else [256,]
         self.tmpdir: Optional[str] = tmpdir
         self.threads: int = threads
     # end def
@@ -242,6 +260,8 @@ class ReverlorArgs:
             minimap_m=args.minimap_m,
             minimap_x=args.minimap_x,
             keep_tmp=args.keep_tmp,
+            samtools_f=args.samtools_f,
+            samtools_F=args.samtools_F,
             tmpdir=args.tmpdir,
             threads=args.threads,
         )
