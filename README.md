@@ -55,6 +55,13 @@ source reverlor_venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### 4. Test installation
+
+```bash
+pip install -r requirements_with_tests.txt
+python3 -m pytest tests
+```
+
 ---
 
 ## Quick Start
