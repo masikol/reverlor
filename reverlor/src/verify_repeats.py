@@ -120,7 +120,7 @@ def find_unresolved_repeats(args: VerifyArgs) -> list[VerifyResult]:
                 )
             )
 
-            if num_read_throughs < args.num_read_threshold:
+            if num_read_throughs < args.span_threshold:
                 results.append(VerifyResult(
                     region=region,
                     num_read_throughs=num_read_throughs

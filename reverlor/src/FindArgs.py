@@ -35,33 +35,38 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Path to output directory (required)'
     )
     parser.add_argument(
+        '-l',
         '--min-repeat-len',
         type=int,
         default=defaults.MIN_REPAT_LEN,
         help=f'Minimum repeat length (default: {defaults.MIN_REPAT_LEN})'
     )
     parser.add_argument(
+        '-i',
         '--min-repeat-interval',
         type=int,
         default=defaults.MIN_REPEAT_INTERVAL,
         help=(
-            f'inimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}).'
+            f'Minimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}).'
             'If the interval is shorter, the repeats get merged.'
         )
     )
     parser.add_argument(
+        '-k',
         '--minimap-k',
         type=int,
         default=defaults.MINIMAP_K,
         help=f'minimap2 k-mer length (default: {defaults.MINIMAP_K})'
     )
     parser.add_argument(
+        '-w',
         '--minimap-w',
         type=int,
         default=defaults.MINIMAP_W,
         help=f'minimap2 minimizer window size (default: {defaults.MINIMAP_W})'
     )
     parser.add_argument(
+        '-m',
         '--minimap-m',
         type=int,
         default=defaults.MINIMAP_M,

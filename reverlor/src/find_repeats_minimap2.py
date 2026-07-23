@@ -15,7 +15,7 @@ def find_repeats(args: FindArgs) -> str:
     os.makedirs(args.output_dir, exist_ok=True)
 
     raw_bed_fpath = os.path.join(args.output_dir, 'repeats_raw.bed')
-    merged_bed_fpath = os.path.join(args.output_dir, 'repeats_final.bed')
+    merged_bed_fpath = os.path.join(args.output_dir, 'repeats.bed')
 
     _create_raw_repeat_file(args, raw_bed_fpath)
     merge_features(args, raw_bed_fpath, merged_bed_fpath)

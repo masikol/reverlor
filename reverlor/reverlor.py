@@ -47,8 +47,12 @@ def main():
 
 def reverlor():
     rev_args = ReverlorArgs.parse_args()
-    report_version_and_author()
-    logging.info(rev_args)
+
+    log_level = logging.getLogger().level
+    if log_level in (logging.DEBUG, logging.INFO):
+        report_version_and_author()
+        logging.info(rev_args)
+    # end if
 
     logging.info('Repeat search started')
     find_args = FindArgs.from_reverlor_args(rev_args)

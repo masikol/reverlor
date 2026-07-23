@@ -37,8 +37,12 @@ from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 
 def reverlor_find():
     args = FindArgs.parse_args()
-    report_version_and_author()
-    logging.info(args)
+
+    log_level = logging.getLogger().level
+    if log_level in (logging.DEBUG, logging.INFO):
+        report_version_and_author()
+        logging.info(args)
+    # end if
 
     logging.info('Repeat search started')
     repeat_bed_fpath = find_repeats_minimap2(args)

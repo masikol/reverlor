@@ -36,46 +36,56 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Path to output directory'
     )
     parser.add_argument(
+        '-l',
         '--min-repeat-len',
         type=int,
         default=defaults.MIN_REPAT_LEN,
-        help='Minimum repeat length (default: 200)'
+        help=f'Minimum repeat length (default: {defaults.MIN_REPAT_LEN})'
     )
     parser.add_argument(
+        '-i',
         '--min-repeat-interval',
         type=int,
         default=defaults.MIN_REPEAT_INTERVAL,
-        help='Minimum interval between repeats (default: 100)'
+        help=(
+            f'Minimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}).'
+            'If the interval is shorter, the repeats get merged.'
+        )
     )
     parser.add_argument(
-        '--num-read-threshold',
+        '-s',
+        '--span',
         type=int,
         default=defaults.NUM_READ_THRESHOLD,
-        help='Minimum number of read-throughs to consider a region resolved (default: 5)'
+        help=f'Minimum number of spanning reads to consider a repeat resolved (default: {defaults.NUM_READ_THRESHOLD})'
     )
     parser.add_argument(
+        '-u',
         '--shoulder-len',
         type=int,
         default=defaults.SHOULDER_LEN,
-        help='Shoulder length for coordinate checking (default: 200)'
+        help=f'Shoulder length for coordinate checking (default: {defaults.SHOULDER_LEN})'
     )
     parser.add_argument(
+        '-k',
         '--minimap-k',
         type=int,
         default=defaults.MINIMAP_K,
-        help='minimap2 k-mer length (default: 19)'
+        help=f'minimap2 k-mer length (default: {defaults.MINIMAP_K})'
     )
     parser.add_argument(
+        '-w',
         '--minimap-w',
         type=int,
         default=defaults.MINIMAP_W,
-        help='minimap2 minimizer window size (default: 19)'
+        help=f'minimap2 minimizer window size (default: {defaults.MINIMAP_W})'
     )
     parser.add_argument(
+        '-m',
         '--minimap-m',
         type=int,
         default=defaults.MINIMAP_M,
-        help='minimap2 matching score (default: 127)'
+        help=f'minimap2 matching score (default: {defaults.MINIMAP_M})'
     )
     parser.add_argument(
         '--minimap-x',
@@ -102,7 +112,7 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         '--keep-tmp',
         action='store_true',
         default=defaults.KEEP_TMP_FILES,
-        help='Keep temporary files (default: False)'
+        help='Keep temporary files (default: {defaults.KEEP_TMP_FILES})'
     )
     parser.add_argument(
         '--tmpdir',
@@ -115,7 +125,7 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         '--threads',
         type=int,
         default=defaults.NUM_THREADS,
-        help='number of CPU threads to use'
+        help=f'number of CPU threads to use (default: {defaults.NUM_THREADS})'
     )
     parser.add_argument(
         '-v',
@@ -145,10 +155,10 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.exit(1)
     # end if
 
-    if args.num_read_threshold < 1:
+    if args.span < 1:
         sys.stderr.write(
-            'Error: num-read-threshold must be >= 1, got `{}`\n'.format(
-                args.num_read_threshold
+            'Error: --span must be >= 1, got `{}`\n'.format(
+                args.span
             )
         )
         sys.exit(1)
@@ -190,7 +200,7 @@ class ReverlorArgs:
                  input_bam_fpath: str,
                  min_repeat_len: int = defaults.MIN_REPAT_LEN,
                  min_repeat_interval: int = defaults.MIN_REPEAT_INTERVAL,
-                 num_read_threshold: int = defaults.NUM_READ_THRESHOLD,
+                 span_threshold: int = defaults.NUM_READ_THRESHOLD,
                  shoulder_len: int = defaults.SHOULDER_LEN,
                  minimap_k: int = defaults.MINIMAP_K,
                  minimap_w: int = defaults.MINIMAP_W,
@@ -206,7 +216,7 @@ class ReverlorArgs:
         self.input_bam_fpath: str = input_bam_fpath
         self.min_repeat_len: int = min_repeat_len
         self.min_repeat_interval: int = min_repeat_interval
-        self.num_read_threshold: int = num_read_threshold
+        self.span_threshold: int = span_threshold
         self.shoulder_len: int = shoulder_len
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
@@ -246,7 +256,7 @@ class ReverlorArgs:
             input_bam_fpath=args.input_bam_fpath,
             min_repeat_len=args.min_repeat_len,
             min_repeat_interval=args.min_repeat_interval,
-            num_read_threshold=args.num_read_threshold,
+            span_threshold=args.span,
             shoulder_len=args.shoulder_len,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,

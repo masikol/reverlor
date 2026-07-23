@@ -46,16 +46,18 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         help='Path to output directory (required)'
     )
     parser.add_argument(
-        '--num-read-threshold',
+        '-s',
+        '--span',
         type=int,
         default=defaults.NUM_READ_THRESHOLD,
-        help='Minimum number of read-throughs to consider a region resolved (default: 5)'
+        help=f'Minimum number of spanning reads to consider a repeat resolved (default: {defaults.NUM_READ_THRESHOLD})'
     )
     parser.add_argument(
+        '-u',
         '--shoulder-len',
         type=int,
         default=defaults.SHOULDER_LEN,
-        help='Shoulder length for coordinate checking (default: 200)'
+        help=f'Shoulder length for coordinate checking (default: {defaults.SHOULDER_LEN})'
     )
     parser.add_argument(
         '--samtools-f',
@@ -98,10 +100,10 @@ def _validate_args(args: argparse.Namespace) -> None:
         # end if
     # end for
 
-    if args.num_read_threshold < 1:
+    if args.span < 1:
         sys.stderr.write(
-            'Error: num-read-threshold must be >= 1, got `{}`\n'.format(
-                args.num_read_threshold
+            'Error: --span must be >= 1, got `{}`\n'.format(
+                args.span
             )
         )
         sys.exit(1)
@@ -128,7 +130,7 @@ class VerifyArgs:
                  input_bed_fpath: str,
                  input_bam_fpath: str,
                  output_dir: str,
-                 num_read_threshold: int = defaults.NUM_READ_THRESHOLD,
+                 span_threshold: int = defaults.NUM_READ_THRESHOLD,
                  shoulder_len: int = defaults.SHOULDER_LEN,
                  samtools_f: Optional[list[int]] = None,
                  samtools_F: Optional[list[int]] = None,
@@ -137,7 +139,7 @@ class VerifyArgs:
         self.input_bed_fpath: str = input_bed_fpath
         self.input_bam_fpath: str = input_bam_fpath
         self.output_dir: str = output_dir
-        self.num_read_threshold: int = num_read_threshold
+        self.span_threshold: int = span_threshold
         self.shoulder_len: int = shoulder_len
         self.samtools_f: list[int] = samtools_f if samtools_f is not None else defaults.SAMTOOLS_f
         self.samtools_F: list[int] = samtools_F if samtools_F is not None else defaults.SAMTOOLS_F
@@ -172,7 +174,7 @@ class VerifyArgs:
             input_bed_fpath=args.input_bed_fpath,
             input_bam_fpath=args.input_bam_fpath,
             output_dir=args.output_dir,
-            num_read_threshold=args.num_read_threshold,
+            span_threshold=args.span,
             shoulder_len=args.shoulder_len,
             samtools_f=args.samtools_f,
             samtools_F=args.samtools_F,
@@ -197,7 +199,7 @@ class VerifyArgs:
             input_bed_fpath=input_bed_fpath,
             input_bam_fpath=rev.input_bam_fpath,
             output_dir=rev.output_dir,
-            num_read_threshold=rev.num_read_threshold,
+            span_threshold=rev.span_threshold,
             shoulder_len=rev.shoulder_len,
             samtools_f=rev.samtools_f,
             samtools_F=rev.samtools_F,
