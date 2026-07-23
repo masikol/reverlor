@@ -6,7 +6,7 @@ import argparse
 import subprocess as sp
 from typing import Optional
 
-import src.defaults as defaults
+from . import defaults
 from .reverlor_logging import setup_logging
 from ._version import __version__, __last_update_date__
 

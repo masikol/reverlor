@@ -48,9 +48,9 @@ def read_bed_to_regions(input_fpath: str) -> list[RepeatRegion]:
         for line in ifh:
             vals = line.strip().split('\t')
             regions.append(RepeatRegion(
-                ref_id=vals[0],
-                start=int(vals[1]),   # keep 0-based, close
-                end=int(vals[2]),     # keep 0-based, open
+                ref_id=vals[0].strip(),
+                start=int(vals[1].strip()),   # keep 0-based, close
+                end=int(vals[2].strip()),     # keep 0-based, open
             ))
         # end for
     # end with
