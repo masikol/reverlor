@@ -7,12 +7,12 @@ set -euo pipefail
 
 FINDERS=(
     minimap2
-    # repeat-scout
-    # phraider
-    # total-repeats
-    # repeat-modeler
-    # grf
-    # 'reprise'
+    repeat-scout
+    phraider
+    total-repeats
+    repeat-modeler
+    grf
+    reprise
 )
 
 MUTATION_TYPE='SNP' # choice
@@ -30,7 +30,7 @@ WORKDIR='/mnt/data/Max/max_disser/work_dirs/reverlor'
 # <<< Configuration <<<
 
 
-reverlor_find_fpath="${REPO_DIR}/param_selection/reverlor_test_version/reverlor_find.py"
+reverlor_find_fpath="${REPO_DIR}/cmp_repeat_finders/reverlor_test_version/reverlor_find.py"
 genome_fasta="${WORKDIR}/data/Mycoplasma_mycoides_JCVI-syn3.0.fasta"
 plasmid_fasta="${WORKDIR}/data/pUC18.fasta"
 
