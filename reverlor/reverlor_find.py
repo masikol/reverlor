@@ -1,30 +1,8 @@
 #!/usr/bin/env python3
 
-# >>> Check python interpreter version >>>
-
-import sys
-
-if sys.version_info.major < 3:
-    print(
-        "\nYour python interpreter version is " + "%d.%d" % (
-            sys.version_info.major,
-            sys.version_info.minor
-        )
-    )
-    print("   Please, use Python 3.\a")
-    # In python 2 'raw_input' does the same thing as 'input' in python 3.
-    # Neither does 'input' in python2.
-    if sys.platform.startswith("win"):
-        raw_input("Press ENTER to exit:")
-    # end if
-    sys.exit(1)
-# end if
-
-# <<<
-
-
 # >>> Import >>>
 
+import sys
 import logging
 
 from .src.FindArgs import FindArgs
@@ -62,5 +40,5 @@ def reverlor_find(args: FindArgs):
 
 if __name__ == '__main__':
     main()
-    sys.exit(1)
+    sys.exit(0)
 # end if
