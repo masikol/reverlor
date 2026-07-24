@@ -28,13 +28,13 @@ if sys.version_info.major < 3:
 import os
 import logging
 
-from src.FindArgs import FindArgs
-from src.VerifyArgs import VerifyArgs
-from src.ReverlorArgs import ReverlorArgs
-from src._version import report_version_and_author
-from src.verify_repeats import find_unresolved_repeats
-from src.bed_lib import verify_results_to_bed, VerifyResult
-from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
+from .src.FindArgs import FindArgs
+from .src.VerifyArgs import VerifyArgs
+from .src.ReverlorArgs import ReverlorArgs
+from .src._version import report_version_and_author
+from .src.verify_repeats import find_unresolved_repeats
+from .src.bed_lib import verify_results_to_bed, VerifyResult
+from .src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 
 # <<<
 
@@ -42,11 +42,11 @@ from src.find_repeats_minimap2 import find_repeats as find_repeats_minimap2
 # >>> Functions >>>
 
 def main():
-    reverlor()
+    args = ReverlorArgs.parse_args()
+    reverlor(args)
 # end def
 
-def reverlor():
-    rev_args = ReverlorArgs.parse_args()
+def reverlor(rev_args: ReverlorArgs):
 
     log_level = logging.getLogger().level
     if log_level in (logging.DEBUG, logging.INFO):
@@ -87,8 +87,5 @@ def _make_outfpath(args: VerifyArgs) -> str:
 
 if __name__ == '__main__':
     main()
+    sys.exit(1)
 # end if
-
-# <<<
-
-sys.exit(0)

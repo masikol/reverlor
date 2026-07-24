@@ -28,19 +28,22 @@ if sys.version_info.major < 3:
 import os
 import logging
 
-from src.VerifyArgs import VerifyArgs
-from src._version import report_version_and_author
-from src.verify_repeats import find_unresolved_repeats
-from src.bed_lib import verify_results_to_bed, VerifyResult
+from .src.VerifyArgs import VerifyArgs
+from .src._version import report_version_and_author
+from .src.verify_repeats import find_unresolved_repeats
+from .src.bed_lib import verify_results_to_bed, VerifyResult
 
 # <<<
 
 
 # >>> Functions >>>
 
-def reverlor_verify():
+def main():
     args = VerifyArgs.parse_args()
+    reverlor_verify(args)
+# end def
 
+def reverlor_verify(args: VerifyArgs):
     log_level = logging.getLogger().level
     if log_level in (logging.DEBUG, logging.INFO):
         report_version_and_author()
@@ -70,9 +73,6 @@ def _make_outfpath(args: VerifyArgs) -> str:
 # >>> Proceed >>>
 
 if __name__ == '__main__':
-    reverlor_verify()
+    main()
+    sys.exit(1)
 # end if
-
-# <<<
-
-sys.exit(0)

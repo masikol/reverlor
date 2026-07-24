@@ -16,9 +16,9 @@ A bioinformatics tool that finds inexact interspersed repeats in genomic sequenc
 - [Pipeline Overview](#pipeline-overview)
 - [Usage](#usage)
   - [BAM File Preparation](#bam-file-preparation)
-  - [Full Pipeline (reverlor.py)](#full-pipeline-reverlorpy)
-  - [Find Only (reverlor_find.py)](#find-only-reverlor_findpy)
-  - [Verify Only (reverlor_verify.py)](#verify-only-reverlor_verifypy)
+  - [Full Pipeline (reverlor)](#full-pipeline-reverlorpy)
+  - [Find Only (reverlor_find)](#find-only-reverlor_findpy)
+  - [Verify Only (reverlor_verify)](#verify-only-reverlor_verifypy)
 - [Options Reference](#options-reference)
 - [Output Files](#output-files)
 - [Examples](#examples)
@@ -35,46 +35,67 @@ A bioinformatics tool that finds inexact interspersed repeats in genomic sequenc
 
 ## Installation
 
-### 1. Clone the repository
+### 1. From PyPI
+
+We recommend to install reverlor to a separate Python virtual environment.
+
+#### 1.1 Using pip
 
 ```bash
-git clone https://github.com/your-username/reverlor.git
-cd reverlor
-```
-
-### 2. Create and activate a virtual environment
-
-```bash
+# Create a virtual environment
 python3 -m venv reverlor_venv
-source reverlor_venv/bin/activate
+# Activate the environment
+source reverlor_venv/bin/env
+# Install
+pip install reverlor
 ```
 
-### 3. Install Python dependencies
+#### 1.2 Using uv
 
 ```bash
+# Create a virtual environment
+uv venv reverlor_venv
+# Activate the environment
+source reverlor_venv/bin/env
+# Install
+uv pip install reverlor
+```
+
+### 2. From source
+
+```bash
+# Get source code
+git clone git@github.com:masikol/reverlor.git # Or download a release archive from https://github.com/masikol/reverlor/releases
+cd reverlor
+# Create a virtual environment
+python3 -m venv ./reverlor_venv
+# Activate the environment
+source ./reverlor_venv/bin/env
+# Build reverlor package. This will produce a ./dist directory
+python3 -m build
+# Install reverlor (assuming its version is 0.0.1)
+pip3 install dist/reverlor_test_masikol-0.0.1-py3-none-any.whl
+# Install Python dependencies
 pip install -r requirements.txt
-```
 
-### 4. Test installation
-
-```bash
-pip install -r requirements_with_tests.txt
+# If you want to test your installation, install pytest
+pip install pytest
+# Test you installation
 python3 -m pytest tests
 ```
-
 ---
 
 ## Quick Start
 
 ```bash
 # Full pipeline: find repeats + verify with long reads
-python3 reverlor/reverlor.py genome.fasta reads.bam output_dir/
+reverlor genome.fasta reads.bam output_dir/
 
 # With verbose output
-python3 reverlor/reverlor.py -vv genome.fasta reads.bam output_dir/
+reverlor -vv genome.fasta reads.bam output_dir/
 
 # With custom parameters
-python3 reverlor/reverlor.py \
+reverlor \
     --min-repeat-len 127 \
     --span 10 \
     --threads 4 \
@@ -107,7 +128,7 @@ python3 reverlor/reverlor.py \
 
 ### BAM File Preparation
 
-For best performance, we strongly recommend to pass **sorted and indexed** BAM files to `reverlor.py`.
+For best performance, we strongly recommend to pass **sorted and indexed** BAM files to `reverlor`.
 
 Here is a quick example on how to create such file:
 
@@ -119,12 +140,12 @@ minimap2 -a genome.fasta reads.fastq.gz \
 samtools index reads.sorted.bam
 ```
 
-### Full Pipeline (`reverlor.py`)
+### Full Pipeline (`reverlor`)
 
 Runs both repeat finding and verification in sequence.
 
 ```bash
-python3 reverlor/reverlor.py [options] <fasta> <input_bam> <output_dir>
+reverlor [options] <fasta> <input_bam> <output_dir>
 ```
 
 **Positional arguments:**
@@ -137,12 +158,12 @@ python3 reverlor/reverlor.py [options] <fasta> <input_bam> <output_dir>
 
 ---
 
-### Find Only (`reverlor_find.py`)
+### Find Only (`reverlor_find`)
 
 Finds repeats without verification.
 
 ```bash
-python3 reverlor/reverlor_find.py [options] <input_fasta> <output_dir>
+reverlor_find [options] <input_fasta> <output_dir>
 ```
 
 **Positional arguments:**
@@ -154,12 +175,12 @@ python3 reverlor/reverlor_find.py [options] <input_fasta> <output_dir>
 
 ---
 
-### Verify Only (`reverlor_verify.py`)
+### Verify Only (`reverlor_verify`)
 
 Verifies pre-existing repeat predictions against a **sorted and indexed** BAM file.
 
 ```bash
-python3 reverlor/reverlor_verify.py [options] <input_fasta> <input_bed> <input_bam> <output_dir>
+reverlor_verify [options] <input_fasta> <input_bed> <input_bam> <output_dir>
 ```
 
 **Positional arguments:**
@@ -212,7 +233,7 @@ python3 reverlor/reverlor_verify.py [options] <input_fasta> <input_bed> <input_b
 
 - Add `--samtools-F 2048` to also exclude supplementary alignments:
 ```
-reverlor/reverlor.py \
+reverlor \
     --samtools-F 256 \
     --samtools-F 2048 \
     genome.fasta \
@@ -222,7 +243,7 @@ reverlor/reverlor.py \
 
 - Add `--samtools-f 16` to only include reverse-complementedly mapped reads.
 ```
-reverlor/reverlor.py \
+reverlor \
     --samtools-F 256 \
     --samtools-f 16 \
     genome.fasta \
@@ -236,20 +257,20 @@ reverlor/reverlor.py \
 
 Reverlor outputs BED files.
 
-### Full Pipeline (`reverlor.py`)
+### Full Pipeline (`reverlor`)
 
 | File | Description |
 |------|-------------|
 | `repeats.bed` | Detected repeat regions |
 | `unresolved_repeats.bed` | Repeats with insufficient spanning coverage |
 
-### Find Only (`reverlor_find.py`)
+### Find Only (`reverlor_find`)
 
 | File | Description |
 |------|-------------|
 | `repeats.bed` | Detected repeat regions |
 
-### Verify Only (`reverlor_verify.py`)
+### Verify Only (`reverlor_verify`)
 
 | File | Description |
 |------|-------------|
@@ -263,7 +284,7 @@ Reverlor outputs BED files.
 ### Example 1: Basic usage on a bacterial genome
 
 ```bash
-python3 reverlor/reverlor.py \
+reverlor \
     genome.fasta \
     reads.sorted.bam \
     output_dir/
@@ -272,7 +293,7 @@ python3 reverlor/reverlor.py \
 ### Example 2: Exclude secondary and supplementary alignments
 
 ```bash
-python3 reverlor/reverlor.py \
+reverlor \
     --samtools-F 256 \
     --samtools-F 2048 \
     genome.fasta \
@@ -283,7 +304,7 @@ python3 reverlor/reverlor.py \
 ### Example 3: Find repeats only, no verification (no BAM required)
 
 ```bash
-python3 reverlor/reverlor_find.py \
+reverlor_find \
     genome.fasta \
     output_dir/
 ```
@@ -291,7 +312,7 @@ python3 reverlor/reverlor_find.py \
 ### Example 4: Verify existing repeat predictions (`repeats.bed`)
 
 ```bash
-python3 reverlor/reverlor_verify.py \
+reverlor_verify \
     --span 10 \
     --shoulder-len 300 \
     genome.fasta \
@@ -303,7 +324,7 @@ python3 reverlor/reverlor_verify.py \
 ### Example 5: Debug mode with temporary files
 
 ```bash
-python3 reverlor/reverlor.py \
+reverlor \
     -vvv \
     --keep-tmp \
     --tmpdir /tmp/reverlor_debug \
@@ -315,7 +336,7 @@ python3 reverlor/reverlor.py \
 ### Example 6: Full pipeline with verbose messages
 
 ```bash
-python3 reverlor/reverlor.py \
+reverlor \
     --min-repeat-len 200 \
     --min-repeat-interval 50 \
     --span 5 \

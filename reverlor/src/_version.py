@@ -2,11 +2,10 @@
 import sys
 
 
-__version__ = '0.0.a'
+__version__ = '0.0.1'
 __last_update_date__ = '2026-07-24'
 
 __author__ = 'Maksim Sikolenko'
-__email__ = 'sikolenko@mbio.bas-net.by'
 
 
 def report_version_and_author() -> None:
@@ -25,10 +24,10 @@ def report_version_and_author() -> None:
         __version__,
         __last_update_date__
     ))
-    sys.stderr.write('By {} ({})\n'.format(
-        __author__,
-        __email__
+    sys.stderr.write('By {}\n'.format(
+        __author__
     ))
+    sys.stderr.write('https://github.com/masikol/reverlor\n')
     sys.stderr.write('=' * 20 + '\n')
     sys.stderr.flush()
 # end def
