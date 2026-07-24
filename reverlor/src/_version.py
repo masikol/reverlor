@@ -3,7 +3,7 @@ import sys
 
 
 __version__ = '0.0.a'
-__last_update_date__ = '2026-07-22'
+__last_update_date__ = '2026-07-24'
 
 __author__ = 'Maksim Sikolenko'
 __email__ = 'sikolenko@mbio.bas-net.by'

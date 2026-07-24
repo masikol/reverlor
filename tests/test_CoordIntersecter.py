@@ -6,7 +6,7 @@ from reverlor.src.CoordIntersecter import CoordIntersecter
 
 
 BAM_PATH = str(
-    pathlib.Path(__file__).parent / 'data' / 'some_mapping.srt.bam'
+    pathlib.Path(__file__).parent / 'data' / 'for_CoordIntersecter' / 'some_mapping.srt.bam'
 )
 
 
