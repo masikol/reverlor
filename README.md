@@ -104,12 +104,12 @@ cd reverlor/
 uv venv --python 3.12.3 ./reverlor_venv
 # Activate the environment
 source ./reverlor_venv/bin/activate
+# Install the “build” package
+uv pip install --upgrade build
 # Build reverlor package. This will produce a ./dist directory
 python3 -m build --installer uv
 # Install reverlor (assuming its version is 1.0.0)
 uv pip install dist/reverlor-1.0.0-py3-none-any.whl
-# Install Python dependencies
-uv pip install -r requirements.txt
 
 # If you want to test your installation, install pytest
 uv pip install pytest==8.4.2
