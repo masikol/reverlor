@@ -2,19 +2,18 @@
 
 **RE**peat **VER**ification using **LO**ng **R**eads
 
-A bioinformatics tool that finds inexact interspersed repeats in genomic sequences via minimap2 self-alignment, then verifies whether those repeats are resolved (spanned) by long reads from a BAM alignment file. Repeats are classified as *resolved* or *unresolved* based on a configurable read-through (read spanning) threshold.
-
-**Status:** v0.0.a (alpha) -- 2026-07-23
+A bioinformatic tool that finds exact and inexact interspersed repeats in genomic sequences via [minimap2](https://github.com/lh3/minimap2) self-alignment, then verifies whether those repeats are spanned by long reads from a BAM alignment file. If less than *N* reads span a repeat, it is considered *unresolved*.
 
 ---
 
 ## Table of Contents
 
 - [Motivation](#motivation)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
 - [Pipeline Overview](#pipeline-overview)
+- [Limitations](#limitations)
+- [Installation](#installation)
 - [Usage](#usage)
+  - [Quick Start](#quick-start)
   - [BAM File Preparation](#bam-file-preparation)
   - [Full Pipeline (reverlor)](#full-pipeline-reverlorpy)
   - [Find Only (reverlor_find)](#find-only-reverlor_findpy)
@@ -33,75 +32,6 @@ A bioinformatics tool that finds inexact interspersed repeats in genomic sequenc
 
 3. A program that would find such repeats and verify them (check how many reads span them end-to-end) would be useful.
 
-## Installation
-
-### 1. From PyPI
-
-We recommend to install reverlor to a separate Python virtual environment.
-
-#### 1.1 Using pip
-
-```bash
-# Create a virtual environment
-python3 -m venv reverlor_venv
-# Activate the environment
-source reverlor_venv/bin/env
-# Install
-pip install reverlor
-```
-
-#### 1.2 Using uv
-
-```bash
-# Create a virtual environment
-uv venv reverlor_venv
-# Activate the environment
-source reverlor_venv/bin/env
-# Install
-uv pip install reverlor
-```
-
-### 2. From source
-
-```bash
-# Get source code
-git clone git@github.com:masikol/reverlor.git # Or download a release archive from https://github.com/masikol/reverlor/releases
-cd reverlor
-# Create a virtual environment
-python3 -m venv ./reverlor_venv
-# Activate the environment
-source ./reverlor_venv/bin/env
-# Build reverlor package. This will produce a ./dist directory
-python3 -m build
-# Install reverlor (assuming its version is 0.0.1)
-pip3 install dist/reverlor_test_masikol-0.0.1-py3-none-any.whl
-# Install Python dependencies
-pip install -r requirements.txt
-
-# If you want to test your installation, install pytest
-pip install pytest
-# Test you installation
-python3 -m pytest tests
-```
----
-
-## Quick Start
-
-```bash
-# Full pipeline: find repeats + verify with long reads
-reverlor genome.fasta reads.bam output_dir/
-
-# With verbose output
-reverlor -vv genome.fasta reads.bam output_dir/
-
-# With custom parameters
-reverlor \
-    --min-repeat-len 127 \
-    --span 10 \
-    --threads 4 \
-    genome.fasta reads.bam output_dir/
-```
-
 ---
 
 ## Pipeline Overview
@@ -119,12 +49,93 @@ reverlor \
 1. Read repeat regions from the BED file created at Step 1.
 2. For each repeat, compute **“shoulder” coordinates** (flanking regions upstream and downstream).
 3. Use `pysam` to find long reads spanning from the upstream shoulder position to the downstream one.
-4. If fewer than `--span` reads span the repeat, mark it as **unresolved**.
+4. If fewer than `--span` reads span the repeat, consider it **unresolved**.
 5. Output: `unresolved_repeats.bed`.
 
 ---
 
+## Limitations
+
+Reverlor reports tandem repeats as a single repeat.
+
+Reverlor does not cluster repeat families.
+
+Reverlor offers no explicit and straightforward control over minimum repeat sequence identity to be reported. It can though be controled with `--minimap-m` option, which is the minimum minimap2 chaining score. The lower `--minimap-m` is, the more dissimilar repeats shall be reported. Chaining score equals the approximate number of matching bases minus a concave gap penalty (see [minimap2 manual](https://lh3.github.io/minimap2/minimap2.html)).
+
+---
+
+## Installation
+
+Reverlor was tested using Python 3.12.3.
+
+### 1. From PyPI
+
+We recommend to install reverlor to a separate Python virtual environment.
+
+#### 1.1 Using [uv](https://docs.astral.sh/uv/)
+
+```bash
+# Create a virtual environment in, for example, ./reverlor_venv directory
+uv venv --python 3.12.3 ./reverlor_venv
+# Activate the environment
+source ./reverlor_venv/bin/activate
+# Install
+uv pip install reverlor
+```
+
+#### 1.2 Using pip
+
+```bash
+# Create a virtual environment in, for example, ./reverlor_venv directory
+python3 -m venv ./reverlor_venv
+# Activate the environment
+source ./reverlor_venv/bin/activate
+# Install
+pip install reverlor
+```
+
+### 2. From source
+
+```bash
+# Get source code
+git clone git@github.com:masikol/reverlor.git # Or download a release archive from https://github.com/masikol/reverlor/releases
+cd reverlor/
+# Create a virtual environment
+uv venv --python 3.12.3 ./reverlor_venv
+# Activate the environment
+source ./reverlor_venv/bin/activate
+# Build reverlor package. This will produce a ./dist directory
+python3 -m build --installer uv
+# Install reverlor (assuming its version is 1.0.0)
+uv pip install dist/reverlor-1.0.0-py3-none-any.whl
+# Install Python dependencies
+uv pip install -r requirements.txt
+
+# If you want to test your installation, install pytest
+uv pip install pytest==8.4.2
+# Test your installation
+python3 -m pytest tests
+```
+---
+
 ## Usage
+
+### Quick Start
+
+```bash
+# Full pipeline: find repeats + verify with long reads
+reverlor genome.fasta reads.bam output_dir/
+
+# With verbose output
+reverlor -vv genome.fasta reads.bam output_dir/
+
+# With custom parameters
+reverlor \
+    --min-repeat-len 127 \
+    --span 10 \
+    --threads 4 \
+    genome.fasta reads.bam output_dir/
+```
 
 ### BAM File Preparation
 
@@ -232,7 +243,7 @@ reverlor_verify [options] <input_fasta> <input_bed> <input_bam> <output_dir>
 - Default `-F 256` excludes secondary alignments from verification.
 
 - Add `--samtools-F 2048` to also exclude supplementary alignments:
-```
+```bash
 reverlor \
     --samtools-F 256 \
     --samtools-F 2048 \
@@ -242,7 +253,7 @@ reverlor \
 ```
 
 - Add `--samtools-f 16` to only include reverse-complementedly mapped reads.
-```
+```bash
 reverlor \
     --samtools-F 256 \
     --samtools-f 16 \
@@ -256,6 +267,8 @@ reverlor \
 ## Output Files
 
 Reverlor outputs BED files.
+
+In `unresolved_repeats.bed`, the 5th column holds the number of spanning reads.
 
 ### Full Pipeline (`reverlor`)
 
