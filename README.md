@@ -40,7 +40,7 @@ A bioinformatic tool that finds exact and inexact interspersed repeats in genomi
 
 1. Self-align the reference FASTA using minimap2 (via `mappy` Python package).
 2. Extract alignment coordinates as raw BED entries.
-3. Merge overlapping/adjacent repeats using `pybedtools`.
+3. Merge overlapping/adjacent repeats.
 4. Filter by minimum repeat length.
 5. Output: `repeats.bed`.
 

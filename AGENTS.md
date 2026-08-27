@@ -14,7 +14,7 @@ Early-stage project. Single-author (Maksim Sikolenko). Work happens on the `dev`
 - `src/` modules:
   - `find_repeats_minimap2.py` — self-contained repeat finder using `mappy` (Python minimap2 bindings). No subprocess calls.
   - `verify_repeats.py` — verification logic: checks whether long reads span predicted repeat regions using `pysam`
-  - `bed_lib.py` — BED I/O, merging with `pybedtools`, data classes (`RepeatRegion`, `VerifyResult`)
+  - `bed_lib.py` — BED I/O, sorting, merging and filtering with pure Python, data classes (`RepeatRegion`, `VerifyResult`)
   - `CoordIntersecter.py` — BAM coordinate intersection via `pysam`
   - `FindArgs.py`, `VerifyArgs.py`, `ReverlorArgs.py` — argparse + typed arg containers
   - `defaults.py` — default parameter values

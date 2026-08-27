@@ -1,8 +1,6 @@
 
 from typing import NamedTuple
 
-import pybedtools
-
 from .FindArgs import FindArgs
 
 
@@ -32,13 +30,52 @@ class VerifyResult(NamedTuple):
 def merge_features(args: FindArgs,
                    input_bed_fpath: str,
                    output_bed_fpath: str) -> None:
-    (
-        pybedtools.BedTool(input_bed_fpath)
-            .sort()
-            .merge(d=args.min_repeat_interval)
-            .filter(lambda ivl: (ivl.end - ivl.start) >= args.min_repeat_len)
-            .saveas(output_bed_fpath)
-    )
+    regions = read_bed_to_regions(input_bed_fpath)
+    regions = sort_regions(regions)
+    regions = merge_regions(regions, args.min_repeat_interval)
+    regions = filter_regions(regions, args.min_repeat_len)
+    with open(output_bed_fpath, 'w') as fh:
+        for region in regions:
+            fh.write('\t'.join((
+                region.ref_id,
+                str(region.start),
+                str(region.end),
+            )) + '\n')
+        # end for
+    # end with
+# end def
+
+
+def sort_regions(regions: list[RepeatRegion]) -> list[RepeatRegion]:
+    return sorted(regions, key=lambda r: (r.ref_id, r.start, r.end))
+# end def
+
+
+def merge_regions(regions: list[RepeatRegion],
+                  min_repeat_interval: int) -> list[RepeatRegion]:
+    merged: list[RepeatRegion] = []
+    for region in regions:
+        merge_to_prev = len(merged) != 0 \
+                        and merged[-1].ref_id == region.ref_id \
+                        and region.start - merged[-1].end <= min_repeat_interval
+        if merge_to_prev:
+            prev = merged[-1]
+            prev.end = max(prev.end, region.end)
+        else:
+            merged.append(RepeatRegion(
+                ref_id=region.ref_id,
+                start=region.start,
+                end=region.end,
+            ))
+        # end if
+    # end for
+    return merged
+# end def
+
+
+def filter_regions(regions: list[RepeatRegion],
+                   min_repeat_len: int) -> list[RepeatRegion]:
+    return [r for r in regions if (r.end - r.start) >= min_repeat_len]
 # end def
 
 

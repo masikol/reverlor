@@ -7,6 +7,9 @@ from reverlor.src.bed_lib import (
     read_bed_to_regions,
     verify_results_to_bed,
     merge_features,
+    sort_regions,
+    merge_regions,
+    filter_regions,
 )
 
 
@@ -136,8 +139,121 @@ def test_round_trip(tmp_path):
 # <<< verify_results_to_bed tests <<<
 
 
-# >>> merge_features tests >>>
+# >>> sort_regions tests >>>
 
+def test_sort_by_ref_then_start(tmp_path):
+    regions = [
+        RepeatRegion('chr1', 500, 600),
+        RepeatRegion('chr2', 100, 200),
+        RepeatRegion('chr1', 100, 200),
+    ]
+    result = sort_regions(regions)
+    assert [r.ref_id for r in result] == ['chr1', 'chr1', 'chr2']
+    assert [r.start for r in result] == [100, 500, 100]
+# end def
+
+
+def test_sort_is_stable_preserves_input(tmp_path):
+    regions = [RepeatRegion('chr1', 100, 200)]
+    assert sort_regions(regions) == regions
+# end def
+
+
+def test_sort_empty(tmp_path):
+    assert sort_regions([]) == []
+# end def
+
+
+# <<< sort_regions tests <<<
+
+
+# >>> merge_regions tests >>>
+
+def test_merge_regions_overlapping(tmp_path):
+    regions = [
+        RepeatRegion('chr1', 100, 300),
+        RepeatRegion('chr1', 200, 400),
+    ]
+    result = merge_regions(regions, min_repeat_interval=100)
+    assert len(result) == 1
+    assert result[0].ref_id == 'chr1'
+    assert result[0].start == 100
+    assert result[0].end == 400
+# end def
+
+
+def test_merge_regions_within_distance(tmp_path):
+    regions = [
+        RepeatRegion('chr1', 100, 200),
+        RepeatRegion('chr1', 210, 300),
+    ]
+    result = merge_regions(regions, min_repeat_interval=20)
+    assert len(result) == 1
+    assert (result[0].ref_id, result[0].start, result[0].end) == ('chr1', 100, 300)
+# end def
+
+
+def test_merge_regions_beyond_distance_stay_separate(tmp_path):
+    regions = [
+        RepeatRegion('chr1', 100, 200),
+        RepeatRegion('chr1', 350, 450),
+    ]
+    result = merge_regions(regions, min_repeat_interval=100)
+    assert len(result) == 2
+    assert (result[0].ref_id, result[0].start, result[0].end) == ('chr1', 100, 200)
+    assert (result[1].ref_id, result[1].start, result[1].end) == ('chr1', 350, 450)
+# end def
+
+
+def test_merge_regions_does_not_cross_ref_ids(tmp_path):
+    regions = [
+        RepeatRegion('chr1', 100, 200),
+        RepeatRegion('chr2', 100, 200),
+    ]
+    result = merge_regions(regions, min_repeat_interval=100)
+    assert len(result) == 2
+    assert result[0].ref_id == 'chr1'
+    assert result[1].ref_id == 'chr2'
+# end def
+
+
+def test_merge_regions_empty(tmp_path):
+    assert merge_regions([], min_repeat_interval=100) == []
+# end def
+
+
+# <<< merge_regions tests <<<
+
+
+# >>> filter_regions tests >>>
+
+def test_filter_regions_keeps_at_least_len(tmp_path):
+    regions = [
+        RepeatRegion('chr1', 100, 200),
+        RepeatRegion('chr1', 500, 900),
+    ]
+    result = filter_regions(regions, min_repeat_len=200)
+    assert len(result) == 1
+    assert (result[0].ref_id, result[0].start, result[0].end) == ('chr1', 500, 900)
+# end def
+
+
+def test_filter_regions_boundary_kept(tmp_path):
+    regions = [RepeatRegion('chr1', 100, 300)]
+    result = filter_regions(regions, min_repeat_len=200)
+    assert result == regions
+# end def
+
+
+def test_filter_regions_empty(tmp_path):
+    assert filter_regions([], min_repeat_len=200) == []
+# end def
+
+
+# <<< filter_regions tests <<<
+
+
+# >>> merge_features tests >>>
 def _make_find_args(min_repeat_len, min_repeat_interval):
     return FindArgs(
         fasta_fpath='/dev/null',
