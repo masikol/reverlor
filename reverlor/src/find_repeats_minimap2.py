@@ -2,6 +2,7 @@
 
 import os
 import sys
+from typing import Tuple
 
 import mappy as mp
 
@@ -52,21 +53,24 @@ def _create_raw_repeat_file(args: FindArgs,
         for name, seq, qual in mp.fastx_read(args.fasta_fpath):
             # Passing name to aligner.map is neccessary for MM_F_NO_DIAG to actually take affect
             for hit in aligner.map(seq, name=name):
-                bed_handle.write(
-                    _make_bed_string(hit, name)
-                )
+                for out_str in _make_bed_strings(hit, name):
+                    bed_handle.write(out_str)
+                # end for
             # end for
         # end for
     # end with
 # end def
 
-def _make_bed_string(hit: mp.Alignment, query_name: str) -> str:
-    return '{}\n'.format('\t'.join([
+def _make_bed_strings(hit: mp.Alignment, query_name: str) -> Tuple[str, str]:
+    q_str = '{}\n'.format('\t'.join([
         query_name,
         str(hit.q_st),
         str(hit.q_en),
+    ]))
+    r_str = '{}\n'.format('\t'.join([
         hit.ctg,
         str(hit.r_st),
         str(hit.r_en),
     ]))
+    return q_str, r_str
 # end def

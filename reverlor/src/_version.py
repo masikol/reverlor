@@ -2,8 +2,8 @@
 import sys
 
 
-__version__ = '1.1.0'
-__last_update_date__ = '2026-08-27'
+__version__ = '1.1.1'
+__last_update_date__ = '2026-08-31'
 
 __author__ = 'Maksim Sikolenko'
 
