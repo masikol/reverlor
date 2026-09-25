@@ -29,6 +29,15 @@ def find_repeats(args: FindArgs) -> str:
 # end def
 
 
+def _filter_hit(hit: mp.Alignment,
+                query_name: str,
+                args: FindArgs) -> bool:
+    if not _filter_hit_by_pident(hit, args):
+        return False
+    # end if
+    return _filter_hit_by_seq_names(hit, query_name, args)
+# end def
+
 def _filter_hit_by_pident(hit: mp.Alignment, args: FindArgs) -> bool:
     if hit.blen == 0:
         return False
@@ -38,9 +47,18 @@ def _filter_hit_by_pident(hit: mp.Alignment, args: FindArgs) -> bool:
     return hit_pident >= args.min_pident
 # end def
 
+def _filter_hit_by_seq_names(hit: mp.Alignment,
+                             query_name: str,
+                             args: FindArgs) -> bool:
+    if args.inter_only:
+        return query_name.strip() != hit.ctg.strip()
+    # end if
 
-def _filter_hit(hit: mp.Alignment, args: FindArgs) -> bool:
-    return _filter_hit_by_pident(hit, args)
+    if args.intra_only:
+        return query_name.strip() == hit.ctg.strip()
+    # end if
+
+    return True
 # end def
 
 
@@ -66,9 +84,9 @@ def _create_raw_repeat_file(args: FindArgs,
 
     with open(output_bed_fpath, 'wt') as bed_handle:
         for name, seq, qual in mp.fastx_read(args.fasta_fpath):
-            # Passing name to aligner.map is neccessary for MM_F_NO_DIAG to actually take affect
+            # Passing name to aligner.map is neccessary for MM_F_NO_DIAG to actually take affect (sic!)
             for hit in aligner.map(seq, name=name):
-                if not _filter_hit(hit, args):
+                if not _filter_hit(hit, name, args):
                     continue
                 # end if
                 for out_str in _make_bed_strings(hit, name):

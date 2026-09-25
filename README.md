@@ -224,6 +224,8 @@ reverlor_verify [options] <input_fasta> <input_bed> <input_bam> <output_dir>
 | `-l/--min-repeat-len` | int | 200 | Minimum repeat length to report |
 | `-i/--min-repeat-interval` | int | 100 | Minimum interval between repeats (shorter ones get merged) |
 | `-p/--min-pident` | float | 0.0 | Minimum alignment percent identity in the range [0.0, 100.0] |
+| `--inter-only` | flag | False | Report only INTERreplicon matches, i.e. thouse between different input FASTA sequences |
+| `--intra-only` | flag | False | Report only INTRAreplicon matches, i.e. thouse within the same input FASTA sequence |
 | `-k/--minimap-k` | int | 19 | minimap2 k-mer length |
 | `-w/--minimap-w` | int | 19 | minimap2 minimizer window size |
 | `-m/--minimap-m` | int | 65 | minimap2 min chain score |

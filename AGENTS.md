@@ -65,10 +65,9 @@ python3 -m reverlor <input.fasta> <input.bam> <output_dir> [options]
 
 ## State of the code
 
-- Version 1.0.0 (2026-08-20).
+- Version 1.2.0.
 - `find_repeats_minimap2.py` uses `mappy` directly (no external `minimap2` binary required).
 - Verification uses `pysam` (no external `samtools` binary required).
-- Merging uses `pybedtools` (requires `bedtools` on `$PATH` at runtime).
 - Tests exist in `tests/` (pytest). Test data for `CoordIntersecter` and `find_repeats` is in `tests/data/`.
 - No CI, no linter/formatter config, no pre-commit hooks.
 

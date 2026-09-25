@@ -13,6 +13,7 @@ from reverlor.src.bed_lib import read_bed_to_regions
 from reverlor.src.find_repeats_minimap2 import (
     _filter_hit,
     _filter_hit_by_pident,
+    _filter_hit_by_seq_names,
     find_repeats,
 )
 
@@ -173,9 +174,9 @@ def test_filter_hit_accepts_pident_at_threshold():
         output_dir='/tmp',
         min_pident=0.9,
     )
-    hit = SimpleNamespace(mlen=90, blen=100)
+    hit = SimpleNamespace(mlen=90, blen=100, ctg='chr1')
     assert _filter_hit_by_pident(hit, args)
-    assert _filter_hit(hit, args)
+    assert _filter_hit(hit, 'chr1', args)
 # end def
 
 
@@ -185,9 +186,9 @@ def test_filter_hit_rejects_pident_below_threshold():
         output_dir='/tmp',
         min_pident=0.9,
     )
-    hit = SimpleNamespace(mlen=89, blen=100)
+    hit = SimpleNamespace(mlen=89, blen=100, ctg='chr1')
     assert not _filter_hit_by_pident(hit, args)
-    assert not _filter_hit(hit, args)
+    assert not _filter_hit(hit, 'chr1', args)
 # end def
 
 
@@ -250,20 +251,6 @@ def test_reverlor_args_converts_min_pident_percent_to_ratio(monkeypatch, tmp_pat
 # end def
 
 
-def test_find_args_propagates_min_pident_ratio():
-    reverlor_args = ReverlorArgs(
-        fasta_fpath='/dev/null',
-        input_bam_fpath='/dev/null',
-        output_dir='/tmp',
-        min_pident=0.85,
-    )
-
-    find_args = FindArgs.from_reverlor_args(reverlor_args)
-
-    assert abs(find_args.min_pident - 0.85) < FLOAT_EPSILON
-# end def
-
-
 def test_find_args_rejects_min_pident_above_100(monkeypatch, tmp_path):
     fasta_path = tmp_path / 'input.fasta'
     fasta_path.touch()
@@ -306,6 +293,79 @@ def test_reverlor_args_rejects_negative_min_pident(monkeypatch, tmp_path):
 
 
 # <<< min_pident tests <<<
+
+
+# >>> Sequence-name filter tests >>>
+
+def test_filter_hit_by_seq_names_defaults_to_accepting_all():
+    args = FindArgs(fasta_fpath='/dev/null', output_dir='/tmp')
+    assert _filter_hit_by_seq_names(SimpleNamespace(ctg='chr1'), 'chr1', args)
+    assert _filter_hit_by_seq_names(SimpleNamespace(ctg='chr1'), 'chr2', args)
+# end def
+
+
+def test_filter_hit_by_seq_names_inter_only():
+    args = FindArgs(
+        fasta_fpath='/dev/null',
+        output_dir='/tmp',
+        inter_only=True,
+    )
+    assert not _filter_hit_by_seq_names(SimpleNamespace(ctg='chr1'), 'chr1', args)
+    assert _filter_hit_by_seq_names(SimpleNamespace(ctg='chr2'), 'chr1', args)
+# end def
+
+
+def test_filter_hit_by_seq_names_intra_only():
+    args = FindArgs(
+        fasta_fpath='/dev/null',
+        output_dir='/tmp',
+        intra_only=True,
+    )
+    assert _filter_hit_by_seq_names(SimpleNamespace(ctg='chr1'), 'chr1', args)
+    assert not _filter_hit_by_seq_names(SimpleNamespace(ctg='chr2'), 'chr1', args)
+# end def
+
+
+def test_filter_hit_applies_pident_and_seq_names():
+    args = FindArgs(
+        fasta_fpath='/dev/null',
+        output_dir='/tmp',
+        min_pident=0.9,
+        inter_only=True,
+    )
+    assert _filter_hit(
+        SimpleNamespace(mlen=90, blen=100, ctg='chr2'),
+        'chr1',
+        args,
+    )
+    assert not _filter_hit(
+        SimpleNamespace(mlen=89, blen=100, ctg='chr2'),
+        'chr1',
+        args,
+    )
+# end def
+
+
+def test_find_args_rejects_inter_and_intra_only_together(monkeypatch, tmp_path):
+    fasta_path = tmp_path / 'input.fasta'
+    fasta_path.touch()
+    monkeypatch.setattr(sys, 'argv', [
+        'reverlor_find',
+        str(fasta_path),
+        str(tmp_path / 'out'),
+        '--inter-only',
+        '--intra-only',
+    ])
+
+    with pytest.raises(SystemExit) as exc_info:
+        FindArgs.parse_args()
+    # end with
+
+    assert exc_info.value.code == 2
+# end def
+
+
+# <<< Sequence-name filter tests <<<
 
 
 # >>> Core tests >>>

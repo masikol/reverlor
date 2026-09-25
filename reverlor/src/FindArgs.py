@@ -47,7 +47,7 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=defaults.MIN_REPEAT_INTERVAL,
         help=(
-            f'Minimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}).'
+            f'Minimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}). '
             'If the interval is shorter, the repeats get merged.'
         )
     )
@@ -57,6 +57,19 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=float,
         default=defaults.MIN_PIDENT,
         help=f'Minimum alignment percent identity (default: {defaults.MIN_PIDENT})'
+    )
+    seq_name_filter_group = parser.add_mutually_exclusive_group()
+    seq_name_filter_group.add_argument(
+        '--inter-only',
+        action='store_true',
+        default=defaults.INTER_ONLY,
+        help='Report only INTERreplicon matches, i.e. thouse between different input FASTA sequences'
+    )
+    seq_name_filter_group.add_argument(
+        '--intra-only',
+        action='store_true',
+        default=defaults.INTRA_ONLY,
+        help='Report only INTRAreplicon matches, i.e. thouse within the same input FASTA sequence'
     )
     parser.add_argument(
         '-k',
@@ -165,6 +178,8 @@ class FindArgs:
                  min_repeat_len: int = 200,
                  min_repeat_interval: int = 100,
                  min_pident: float = defaults.MIN_PIDENT,
+                 inter_only: bool = defaults.INTER_ONLY,
+                 intra_only: bool = defaults.INTRA_ONLY,
                  minimap_k: int = defaults.MINIMAP_K,
                  minimap_w: int = defaults.MINIMAP_W,
                  minimap_m: int = defaults.MINIMAP_M,
@@ -177,6 +192,8 @@ class FindArgs:
         self.min_repeat_len: int = min_repeat_len
         self.min_repeat_interval: int = min_repeat_interval
         self.min_pident: float = min_pident
+        self.inter_only: bool = inter_only
+        self.intra_only: bool = intra_only
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
@@ -213,6 +230,8 @@ class FindArgs:
             min_repeat_len=args.min_repeat_len,
             min_repeat_interval=args.min_repeat_interval,
             min_pident=args.min_pident / 100.0,
+            inter_only=args.inter_only,
+            intra_only=args.intra_only,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,
@@ -231,6 +250,8 @@ class FindArgs:
             min_repeat_len=rev.min_repeat_len,
             min_repeat_interval=rev.min_repeat_interval,
             min_pident=rev.min_pident,
+            inter_only=rev.inter_only,
+            intra_only=rev.intra_only,
             minimap_k=rev.minimap_k,
             minimap_w=rev.minimap_w,
             minimap_m=rev.minimap_m,

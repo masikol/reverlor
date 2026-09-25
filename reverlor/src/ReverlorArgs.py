@@ -48,7 +48,7 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=defaults.MIN_REPEAT_INTERVAL,
         help=(
-            f'Minimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}).'
+            f'Minimum interval between repeats (default: {defaults.MIN_REPEAT_INTERVAL}). '
             'If the interval is shorter, the repeats get merged.'
         )
     )
@@ -58,6 +58,19 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         type=float,
         default=defaults.MIN_PIDENT,
         help=f'Minimum alignment percent identity (default: {defaults.MIN_PIDENT})'
+    )
+    seq_name_filter_group = parser.add_mutually_exclusive_group()
+    seq_name_filter_group.add_argument(
+        '--inter-only',
+        action='store_true',
+        default=defaults.INTER_ONLY,
+        help='Report only INTERreplicon matches, i.e. thouse between different input FASTA sequences'
+    )
+    seq_name_filter_group.add_argument(
+        '--intra-only',
+        action='store_true',
+        default=defaults.INTRA_ONLY,
+        help='Report only INTRAreplicon matches, i.e. thouse within the same input FASTA sequence'
     )
     parser.add_argument(
         '-s',
@@ -214,6 +227,8 @@ class ReverlorArgs:
                  min_repeat_len: int = defaults.MIN_REPAT_LEN,
                  min_repeat_interval: int = defaults.MIN_REPEAT_INTERVAL,
                  min_pident: float = defaults.MIN_PIDENT,
+                 inter_only: bool = defaults.INTER_ONLY,
+                 intra_only: bool = defaults.INTRA_ONLY,
                  span_threshold: int = defaults.NUM_READ_THRESHOLD,
                  shoulder_len: int = defaults.SHOULDER_LEN,
                  minimap_k: int = defaults.MINIMAP_K,
@@ -231,6 +246,8 @@ class ReverlorArgs:
         self.min_repeat_len: int = min_repeat_len
         self.min_repeat_interval: int = min_repeat_interval
         self.min_pident: float = min_pident
+        self.inter_only: bool = inter_only
+        self.intra_only: bool = intra_only
         self.span_threshold: int = span_threshold
         self.shoulder_len: int = shoulder_len
         self.minimap_k: int = minimap_k
@@ -272,6 +289,8 @@ class ReverlorArgs:
             min_repeat_len=args.min_repeat_len,
             min_repeat_interval=args.min_repeat_interval,
             min_pident=args.min_pident / 100.0,
+            inter_only=args.inter_only,
+            intra_only=args.intra_only,
             span_threshold=args.span,
             shoulder_len=args.shoulder_len,
             minimap_k=args.minimap_k,
