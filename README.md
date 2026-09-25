@@ -56,11 +56,16 @@ A bioinformatic tool that finds exact and inexact interspersed repeats in genomi
 
 ## Limitations
 
-Reverlor reports tandem repeats as a single repeat.
+&bullet; Reverlor reports tandem repeats as a single repeat.
 
-Reverlor does not cluster repeat families.
+&bullet; Reverlor does not cluster repeat families.
 
-Reverlor offers no explicit and straightforward control over minimum repeat sequence identity to be reported. It can though be controled with `--minimap-m` option, which is the minimum minimap2 chaining score. The lower `--minimap-m` is, the more dissimilar repeats shall be reported. Chaining score equals the approximate number of matching bases minus a concave gap penalty (see [minimap2 manual](https://lh3.github.io/minimap2/minimap2.html)).
+&bullet; Option (`-p/--min-pident`) works in a very straightforward way. Given a `hit` reported by mappy, reverlor computes identity ratio as follows: `hit.mlen / hit.blen` (see `mlen` and `blem` definitions in [mappy documentation](https://pypi.org/project/mappy#user-content-class-mappy-alignment)).
+Although the method is rather intuitive, it might cause reverlor to miss some repeats. For example, suppose we have a repeat match with the following alignment structure:
+```
+|~~~~~ 100 bp, 98% pident ~~~~~|===== 100 bp, 100% pident =====|~~~~~ 100 bp, 98% pident ~~~~~|
+```
+Suppose then we set `-p 99` and expect reverlor to find at least these middle exactly matching 100 bp. But in fact reverlor is likely to miss such repeat. The reason is that minimap2 will, surely, report the whole 300-bp alignment, but its percent of identity is below 99%, so reverlor will filter it out and will not report it.
 
 ---
 
