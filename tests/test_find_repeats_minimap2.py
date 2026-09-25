@@ -1,13 +1,20 @@
 import os
+import sys
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from Bio import SeqIO
 
 from reverlor.src.FindArgs import FindArgs
+from reverlor.src.ReverlorArgs import ReverlorArgs
 from reverlor.src.bed_lib import read_bed_to_regions
-from reverlor.src.find_repeats_minimap2 import find_repeats
+from reverlor.src.find_repeats_minimap2 import (
+    _filter_hit,
+    _filter_hit_by_pident,
+    find_repeats,
+)
 
 
 DATA_DIR = Path(__file__).parent / 'data' / 'for_find_repeats'
@@ -15,7 +22,7 @@ REPEAT_LEN = 256
 MAX_ERROR_BP = 5
 INSERTS_CHR1 = [1000, 3000, 5000]
 INSERTS_CHR2 = [2000]
-
+FLOAT_EPSILON = 1e-6
 
 # >>> Helper functions >>>
 
@@ -156,6 +163,149 @@ def _run_find_repeats(ref_paths, insertions, min_repeat_len=200):
 
 
 # <<< Helper functions <<<
+
+
+# >>> min_pident tests >>>
+
+def test_filter_hit_accepts_pident_at_threshold():
+    args = FindArgs(
+        fasta_fpath='/dev/null',
+        output_dir='/tmp',
+        min_pident=0.9,
+    )
+    hit = SimpleNamespace(mlen=90, blen=100)
+    assert _filter_hit_by_pident(hit, args)
+    assert _filter_hit(hit, args)
+# end def
+
+
+def test_filter_hit_rejects_pident_below_threshold():
+    args = FindArgs(
+        fasta_fpath='/dev/null',
+        output_dir='/tmp',
+        min_pident=0.9,
+    )
+    hit = SimpleNamespace(mlen=89, blen=100)
+    assert not _filter_hit_by_pident(hit, args)
+    assert not _filter_hit(hit, args)
+# end def
+
+
+def test_filter_hit_rejects_zero_blen():
+    args = FindArgs(
+        fasta_fpath='/dev/null',
+        output_dir='/tmp',
+        min_pident=0.0,
+    )
+    assert not _filter_hit_by_pident(SimpleNamespace(mlen=0, blen=0), args)
+# end def
+
+
+def test_min_pident_defaults_to_zero():
+    find_args = FindArgs(fasta_fpath='/dev/null', output_dir='/tmp')
+    reverlor_args = ReverlorArgs(
+        fasta_fpath='/dev/null',
+        input_bam_fpath='/dev/null',
+        output_dir='/tmp',
+    )
+    assert abs(find_args.min_pident - 0.0) < FLOAT_EPSILON
+    assert abs(reverlor_args.min_pident - 0.0) < FLOAT_EPSILON
+# end def
+
+
+def test_find_args_converts_min_pident_percent_to_ratio(monkeypatch, tmp_path):
+    fasta_path = tmp_path / 'input.fasta'
+    fasta_path.touch()
+    monkeypatch.setattr(sys, 'argv', [
+        'reverlor_find',
+        str(fasta_path),
+        str(tmp_path / 'out'),
+        '--min-pident',
+        '95.0',
+    ])
+
+    args = FindArgs.parse_args()
+
+    assert abs(args.min_pident - 0.95) < FLOAT_EPSILON
+# end def
+
+
+def test_reverlor_args_converts_min_pident_percent_to_ratio(monkeypatch, tmp_path):
+    fasta_path = tmp_path / 'input.fasta'
+    fasta_path.touch()
+    bam_path = tmp_path / 'input.bam'
+    bam_path.touch()
+    monkeypatch.setattr(sys, 'argv', [
+        'reverlor',
+        str(fasta_path),
+        str(bam_path),
+        str(tmp_path / 'out'),
+        '--min-pident',
+        '100.0',
+    ])
+
+    args = ReverlorArgs.parse_args()
+
+    assert abs(args.min_pident - 1.0) < FLOAT_EPSILON
+# end def
+
+
+def test_find_args_propagates_min_pident_ratio():
+    reverlor_args = ReverlorArgs(
+        fasta_fpath='/dev/null',
+        input_bam_fpath='/dev/null',
+        output_dir='/tmp',
+        min_pident=0.85,
+    )
+
+    find_args = FindArgs.from_reverlor_args(reverlor_args)
+
+    assert abs(find_args.min_pident - 0.85) < FLOAT_EPSILON
+# end def
+
+
+def test_find_args_rejects_min_pident_above_100(monkeypatch, tmp_path):
+    fasta_path = tmp_path / 'input.fasta'
+    fasta_path.touch()
+    monkeypatch.setattr(sys, 'argv', [
+        'reverlor_find',
+        str(fasta_path),
+        str(tmp_path / 'out'),
+        '--min-pident',
+        '100.1',
+    ])
+
+    with pytest.raises(SystemExit) as exc_info:
+        FindArgs.parse_args()
+    # end with
+
+    assert exc_info.value.code == 1
+# end def
+
+
+def test_reverlor_args_rejects_negative_min_pident(monkeypatch, tmp_path):
+    fasta_path = tmp_path / 'input.fasta'
+    fasta_path.touch()
+    bam_path = tmp_path / 'input.bam'
+    bam_path.touch()
+    monkeypatch.setattr(sys, 'argv', [
+        'reverlor',
+        str(fasta_path),
+        str(bam_path),
+        str(tmp_path / 'out'),
+        '--min-pident',
+        '-0.1',
+    ])
+
+    with pytest.raises(SystemExit) as exc_info:
+        ReverlorArgs.parse_args()
+    # end with
+
+    assert exc_info.value.code == 1
+# end def
+
+
+# <<< min_pident tests <<<
 
 
 # >>> Core tests >>>

@@ -8,6 +8,7 @@ MINIMAP_X_CHOICES = ('map-ont', 'lr:hq', 'map-hifi', 'map-pb', 'map-iclr', 'asm5
 
 MIN_REPAT_LEN = 200
 MIN_REPEAT_INTERVAL = 100
+MIN_PIDENT = 0.0
 
 NUM_THREADS = 1
 

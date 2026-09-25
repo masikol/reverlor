@@ -29,6 +29,21 @@ def find_repeats(args: FindArgs) -> str:
 # end def
 
 
+def _filter_hit_by_pident(hit: mp.Alignment, args: FindArgs) -> bool:
+    if hit.blen == 0:
+        return False
+    # end if
+
+    hit_pident = hit.mlen / hit.blen
+    return hit_pident >= args.min_pident
+# end def
+
+
+def _filter_hit(hit: mp.Alignment, args: FindArgs) -> bool:
+    return _filter_hit_by_pident(hit, args)
+# end def
+
+
 def _create_raw_repeat_file(args: FindArgs,
                             output_bed_fpath: str) -> None:
     # See files main.c and minimap.h of minimap2
@@ -53,6 +68,9 @@ def _create_raw_repeat_file(args: FindArgs,
         for name, seq, qual in mp.fastx_read(args.fasta_fpath):
             # Passing name to aligner.map is neccessary for MM_F_NO_DIAG to actually take affect
             for hit in aligner.map(seq, name=name):
+                if not _filter_hit(hit, args):
+                    continue
+                # end if
                 for out_str in _make_bed_strings(hit, name):
                     bed_handle.write(out_str)
                 # end for

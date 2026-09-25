@@ -53,6 +53,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         )
     )
     parser.add_argument(
+        '-p',
+        '--min-pident',
+        type=float,
+        default=defaults.MIN_PIDENT,
+        help=f'Minimum alignment percent identity (default: {defaults.MIN_PIDENT})'
+    )
+    parser.add_argument(
         '-s',
         '--span',
         type=int,
@@ -155,6 +162,12 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.exit(1)
     # end if
 
+    if not 0.0 <= args.min_pident <= 100.0:
+        sys.stderr.write(f'Error: invalid min pident: `{args.min_pident}`\n')
+        sys.stderr.write('It must be a percentage in the range [0.0, 100.0]\n')
+        sys.exit(1)
+    # end if
+
     if args.span < 1:
         sys.stderr.write(
             'Error: --span must be >= 1, got `{}`\n'.format(
@@ -200,6 +213,7 @@ class ReverlorArgs:
                  input_bam_fpath: str,
                  min_repeat_len: int = defaults.MIN_REPAT_LEN,
                  min_repeat_interval: int = defaults.MIN_REPEAT_INTERVAL,
+                 min_pident: float = defaults.MIN_PIDENT,
                  span_threshold: int = defaults.NUM_READ_THRESHOLD,
                  shoulder_len: int = defaults.SHOULDER_LEN,
                  minimap_k: int = defaults.MINIMAP_K,
@@ -216,6 +230,7 @@ class ReverlorArgs:
         self.input_bam_fpath: str = input_bam_fpath
         self.min_repeat_len: int = min_repeat_len
         self.min_repeat_interval: int = min_repeat_interval
+        self.min_pident: float = min_pident
         self.span_threshold: int = span_threshold
         self.shoulder_len: int = shoulder_len
         self.minimap_k: int = minimap_k
@@ -256,6 +271,7 @@ class ReverlorArgs:
             input_bam_fpath=args.input_bam_fpath,
             min_repeat_len=args.min_repeat_len,
             min_repeat_interval=args.min_repeat_interval,
+            min_pident=args.min_pident / 100.0,
             span_threshold=args.span,
             shoulder_len=args.shoulder_len,
             minimap_k=args.minimap_k,

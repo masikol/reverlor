@@ -52,6 +52,13 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
         )
     )
     parser.add_argument(
+        '-p',
+        '--min-pident',
+        type=float,
+        default=defaults.MIN_PIDENT,
+        help=f'Minimum alignment percent identity (default: {defaults.MIN_PIDENT})'
+    )
+    parser.add_argument(
         '-k',
         '--minimap-k',
         type=int,
@@ -116,6 +123,12 @@ def _validate_args(args: argparse.Namespace) -> None:
         sys.exit(1)
     # end if
 
+    if not 0.0 <= args.min_pident <= 100.0:
+        sys.stderr.write(f'Error: invalid min pident: `{args.min_pident}`\n')
+        sys.stderr.write('It must be a percentage in the range [0.0, 100.0]\n')
+        sys.exit(1)
+    # end if
+
     if args.minimap_k < 0:
         sys.stderr.write(f'Error: invalid minimap-k: `{args.minimap_k}`\n')
         sys.stderr.write('It must be a non-negative integer\n')
@@ -151,6 +164,7 @@ class FindArgs:
                  output_dir: str,
                  min_repeat_len: int = 200,
                  min_repeat_interval: int = 100,
+                 min_pident: float = defaults.MIN_PIDENT,
                  minimap_k: int = defaults.MINIMAP_K,
                  minimap_w: int = defaults.MINIMAP_W,
                  minimap_m: int = defaults.MINIMAP_M,
@@ -162,6 +176,7 @@ class FindArgs:
         self.output_dir: str = output_dir
         self.min_repeat_len: int = min_repeat_len
         self.min_repeat_interval: int = min_repeat_interval
+        self.min_pident: float = min_pident
         self.minimap_k: int = minimap_k
         self.minimap_w: int = minimap_w
         self.minimap_m: int = minimap_m
@@ -197,6 +212,7 @@ class FindArgs:
             output_dir=args.output_dir,
             min_repeat_len=args.min_repeat_len,
             min_repeat_interval=args.min_repeat_interval,
+            min_pident=args.min_pident / 100.0,
             minimap_k=args.minimap_k,
             minimap_w=args.minimap_w,
             minimap_m=args.minimap_m,
@@ -214,6 +230,7 @@ class FindArgs:
             output_dir=rev.output_dir,
             min_repeat_len=rev.min_repeat_len,
             min_repeat_interval=rev.min_repeat_interval,
+            min_pident=rev.min_pident,
             minimap_k=rev.minimap_k,
             minimap_w=rev.minimap_w,
             minimap_m=rev.minimap_m,
